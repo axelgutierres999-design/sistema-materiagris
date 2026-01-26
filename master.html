@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Admin | OrdenLista</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/master-admin.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
+</head>
+<body>
+
+    <div class="bg-overlay"></div>
+
+    <div class="master-container">
+        <aside>
+            <h2>ORDEN<br>LISTA</h2>
+            <nav>
+                <ul>
+                    <li onclick="cambiarSeccion('lista')" class="active"><span>📋</span> Restaurantes</li>
+                    <li onclick="cambiarSeccion('vision3d')"><span>💎</span> Vision 3D</li>
+                    <li onclick="cambiarSeccion('ajustes')"><span>⚙️</span> Configuración</li>
+                    <li onclick="logout()" style="margin-top: 50px; color: #888;"><span>🚪</span> Salir</li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main>
+            <section id="sec-lista" class="seccion activa">
+                <header>
+                    <h1 style="margin-bottom: 10px; font-weight: 300;">Gestión de Clientes</h1>
+                    <p style="color: #888; margin-bottom: 20px;">Monitor de pagos y estado de restaurantes.</p>
+                    <input type="text" class="search-bar" id="inputBusqueda" placeholder="🔍 Buscar restaurante, dueño o correo...">
+                </header>
+
+                <div id="listaRestaurantes">
+                    <p aria-busy="true" style="color: #666;">Cargando base de datos...</p>
+                </div>
+            </section>
+
+            <section id="sec-vision3d" class="seccion" style="display: none;">
+                <h1>💎 Vision 3D</h1>
+                <p style="color: #888;">Procesamiento de imágenes a modelos tridimensionales.</p>
+                <article style="background: rgba(255,255,255,0.05); text-align: center; padding: 50px; border: 1px dashed #444;">
+                    <input type="file" id="upload3d" accept="image/*" style="display: none;">
+                    <button class="btn-outline" onclick="document.getElementById('upload3d').click()">📷 Subir Imagen de Platillo</button>
+                    <div id="preview3d" style="margin-top: 20px;"></div>
+                </article>
+            </section>
+
+            <section id="sec-ajustes" class="seccion" style="display: none;">
+                <h1>⚙️ Sistema</h1>
+                <div style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px;">
+                    <label style="color: #aaa;">Nombre del Sistema</label>
+                    <input type="text" value="OrdenLista SaaS" style="background: #111; border: 1px solid #333; color: white;">
+                    
+                    <label style="color: #aaa; margin-top: 15px;">Estado Global</label>
+                    <select style="background: #111; border: 1px solid #333; color: white;">
+                        <option>🟢 Operativo</option>
+                        <option>🟡 Mantenimiento</option>
+                    </select>
+                    
+                    <button style="margin-top: 20px; background: white; color: black; border: none; font-weight: bold;">Guardar Cambios</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <dialog id="modalDetalle">
+        <article style="min-width: 400px;">
+            <header>
+                <h3 id="detNombre" style="margin: 0; color: white;">Nombre</h3>
+                <button aria-label="Close" class="contrast" onclick="document.getElementById('modalDetalle').close()" style="float: right; background: transparent; color: white; border: none;">✕</button>
+            </header>
+            
+            <div id="detContenido" style="padding: 10px 0;">
+                </div>
+
+            <footer style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 10px; border-top: 1px solid #333;">
+                <button class="secondary outline" onclick="document.getElementById('modalDetalle').close()" style="border-color: #444; color: #aaa;">Cerrar</button>
+                </footer>
+        </article>
+    </dialog>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/master-logic.js"></script>
+</body>
+</html>

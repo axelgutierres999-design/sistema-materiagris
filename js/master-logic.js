@@ -13,12 +13,12 @@ let todosLosRestaurantes = [];
 // 2. INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
     // Verificar sesión al entrar
-    checkAuth();
+    await checkAuth();
     
-    // Cargar datos
+    // Cargar datos iniciales
     await cargarRestaurantes();
     
-    // Configurar buscador
+    // Configurar buscador en tiempo real
     const buscador = document.getElementById('inputBusqueda');
     if (buscador) {
         buscador.addEventListener('input', (e) => {
@@ -33,10 +33,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-// 3. CARGA DE DATOS (JOIN RESTAURANTES + SUSCRIPCIONES)
+// 3. CARGA DE DATOS (REPARADO PARA EVITAR BUCLES Y MANEJAR ERRORES)
 async function cargarRestaurantes() {
     const listaContenedor = document.getElementById('listaRestaurantes');
-    listaContenedor.innerHTML = '<p aria-busy="true" style="color:#888;">Conectando con la base de datos...</p>';
+    listaContenedor.innerHTML = '<p aria-busy="true" style="color:#888;">Cargando restaurantes...</p>';
 
     try {
         const { data, error } = await db
@@ -54,7 +54,13 @@ async function cargarRestaurantes() {
 
     } catch (err) {
         console.error("Error al cargar:", err);
-        listaContenedor.innerHTML = `<p style="color: #ff5555;">Error: ${err.message}</p>`;
+        // Mostrar el error visualmente (útil para detectar problemas de RLS/Recursión)
+        listaContenedor.innerHTML = `
+            <div style="background:rgba(255,0,0,0.1); padding:15px; border-radius:8px; border:1px solid #ff5555;">
+                <p style="color: #ff5555; margin:0;"><strong>⚠️ Error de Base de Datos:</strong></p>
+                <p style="color: #ff8888; font-size:0.85rem;">${err.message}</p>
+                <button onclick="location.reload()" style="margin-top:10px; font-size:0.7rem; padding: 5px 10px; cursor:pointer;">Reintentar</button>
+            </div>`;
     }
 }
 
@@ -69,10 +75,10 @@ function renderizarLista(lista) {
     }
 
     lista.forEach(res => {
-        // Datos de suscripción seguros
+        // Datos de suscripción seguros (si no hay, por defecto es mes_gratuito)
         const susc = (res.suscripciones && res.suscripciones[0]) || { estado_pago: 'mes_gratuito' };
         
-        // Configuración de estilos por estado
+        // Mapeo de estilos por estado
         const statusMap = {
             'pagado': { clase: 'status-pagado', label: 'Pagado' },
             'mes_gratuito': { clase: 'status-gratis', label: 'Prueba Gratis' },
@@ -97,7 +103,7 @@ function renderizarLista(lista) {
                     </span>
                     <div style="margin-top: 12px;">
                         <button class="btn-outline" style="font-size: 0.8rem; padding: 5px 10px;" onclick="verDetalle('${res.id}')">
-                            Administrar ⚙️
+                            Gestionar ⚙️
                         </button>
                     </div>
                 </div>
@@ -107,37 +113,35 @@ function renderizarLista(lista) {
     });
 }
 
-// 5. NAVEGACIÓN
+// 5. NAVEGACIÓN ENTRE SECCIONES
 function cambiarSeccion(id) {
     document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
     document.querySelectorAll('nav li').forEach(l => l.classList.remove('active'));
     
-    // Mostrar sección
     const seccion = document.getElementById(`sec-${id}`);
     if (seccion) {
         seccion.classList.add('activa');
-        seccion.style.display = 'block'; // Asegurar display block
+        seccion.style.display = 'block';
     }
     
-    // Ocultar las otras (Fix para el estilo inline display:none del HTML)
+    // Ocultar las otras secciones explícitamente
     document.querySelectorAll('.seccion:not(.activa)').forEach(s => s.style.display = 'none');
 
-    // Activar menú
-    const li = Array.from(document.querySelectorAll('nav li')).find(el => el.getAttribute('onclick').includes(id));
+    // Activar el botón del menú correspondiente
+    const li = Array.from(document.querySelectorAll('nav li')).find(el => el.getAttribute('onclick')?.includes(id));
     if (li) li.classList.add('active');
 }
 
-// 6. GESTIÓN DE PAGOS (Lógica de Negocio)
+// 6. GESTIÓN DE PAGOS Y SUSCRIPCIONES
 async function actualizarPago(restauranteId, nuevoEstado) {
-    const confirmacion = confirm(`¿Estás seguro de cambiar el estado a: ${nuevoEstado.toUpperCase()}?`);
-    if (!confirmacion) return;
+    if (!confirm(`¿Estás seguro de cambiar el estado a: ${nuevoEstado.toUpperCase()}?`)) return;
 
     try {
         const { error } = await db
             .from('suscripciones')
             .update({ 
                 estado_pago: nuevoEstado,
-                // Si paga, extendemos 30 días. Si no, dejamos la fecha como está o null.
+                // Si el pago es exitoso, extendemos la fecha 30 días a partir de hoy
                 fecha_vencimiento: nuevoEstado === 'pagado' ? 
                     new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : 
                     undefined
@@ -147,7 +151,7 @@ async function actualizarPago(restauranteId, nuevoEstado) {
         if (error) throw error;
 
         alert("✅ Estado actualizado correctamente.");
-        await cargarRestaurantes(); // Refrescar la lista de fondo
+        await cargarRestaurantes(); // Recargar lista para ver cambios
         document.getElementById('modalDetalle').close();
         
     } catch (err) {
@@ -155,19 +159,15 @@ async function actualizarPago(restauranteId, nuevoEstado) {
     }
 }
 
-// 7. MODAL DE DETALLES (Vista Unificada)
+// 7. MODAL DE DETALLES (VISTA UNIFICADA)
 async function verDetalle(id) {
     const res = todosLosRestaurantes.find(r => r.id === id);
     if (!res) return;
 
-    const susc = (res.suscripciones && res.suscripciones[0]) || { estado_pago: 'mes_gratuito', fecha_vencimiento: 'Sin fecha' };
+    const susc = (res.suscripciones && res.suscripciones[0]) || { estado_pago: 'mes_gratuito', fecha_vencimiento: null };
     const modal = document.getElementById('modalDetalle');
     
-    // Formatear fecha
-    let fechaVenc = "Indefinida";
-    if(susc.fecha_vencimiento) {
-        fechaVenc = new Date(susc.fecha_vencimiento).toLocaleDateString();
-    }
+    let fechaVenc = susc.fecha_vencimiento ? new Date(susc.fecha_vencimiento).toLocaleDateString() : "Indefinida";
 
     document.getElementById('detNombre').innerText = res.nombre;
     document.getElementById('detContenido').innerHTML = `
@@ -189,19 +189,19 @@ async function verDetalle(id) {
 
             <hr style="border-color: #333; margin: 15px 0;">
 
-            <p style="color:#aaa; font-size: 0.8rem; margin-bottom:10px;">Acciones de Pago</p>
+            <p style="color:#aaa; font-size: 0.8rem; margin-bottom:10px;">Acciones Administrativas</p>
             <div style="display: grid; gap: 10px;">
-                <button onclick="actualizarPago('${res.id}', 'pagado')" style="background: white; color: black; border: none; font-weight:bold;">
+                <button onclick="actualizarPago('${res.id}', 'pagado')" style="background: white; color: black; border: none; font-weight:bold; padding: 10px; border-radius: 5px; cursor: pointer;">
                     ✅ Marcar como PAGADO (+30 días)
                 </button>
-                <button onclick="actualizarPago('${res.id}', 'pendiente')" class="btn-outline" style="width:100%;">
+                <button onclick="actualizarPago('${res.id}', 'pendiente')" class="btn-outline" style="width:100%; padding: 10px;">
                     ⚠️ Marcar como PENDIENTE
                 </button>
             </div>
         </div>
 
         <div style="margin-top: 15px;">
-             <button onclick="contactarOwner('${res.telefono}', '${res.nombre}')" style="width:100%; background:#25d366; color:white; border:none; padding:10px; border-radius:8px; cursor:pointer; font-weight:600;">
+             <button onclick="contactarOwner('${res.telefono}', '${res.nombre}')" style="width:100%; background:#25d366; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:600;">
                 📱 Contactar por WhatsApp
              </button>
         </div>
@@ -209,15 +209,41 @@ async function verDetalle(id) {
     modal.showModal();
 }
 
-// 8. GESTIÓN DE PERSONAL (Seguridad)
+// 8. SEGURIDAD Y GESTIÓN DE SESIÓN
+async function checkAuth() {
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) {
+        // Redirigir si no hay una sesión activa de Supabase
+        window.location.href = 'index.html';
+    }
+}
+
+async function logout() {
+    if (confirm("¿Cerrar sesión del Panel Maestro?")) {
+        await db.auth.signOut();
+        // Limpiar cualquier rastro local
+        localStorage.removeItem('master_session');
+        window.location.href = 'index.html'; 
+    }
+}
+
+// 9. UTILIDADES ADICIONALES
+function contactarOwner(tel, nombre) {
+    if(!tel || tel === 'N/A' || tel.length < 5) {
+        return alert("Este restaurante no tiene un teléfono válido registrado.");
+    }
+    const msg = encodeURIComponent(`Hola, te escribo del soporte de OrdenLista respecto a tu restaurante ${nombre}.`);
+    window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=${msg}`, '_blank');
+}
+
 async function crearNuevoAdmin() {
     const email = document.getElementById('newAdminEmail').value;
     const pass = document.getElementById('newAdminPass').value;
 
-    if(!email || !pass) return alert("Llena ambos campos");
+    if(!email || !pass) return alert("Por favor, llena ambos campos");
     if(pass.length < 6) return alert("La contraseña debe tener al menos 6 caracteres");
 
-    if(!confirm(`¿Dar acceso Master a ${email}?`)) return;
+    if(!confirm(`¿Deseas dar acceso Master a ${email}?`)) return;
 
     try {
         const { data, error } = await db.auth.signUp({
@@ -227,37 +253,14 @@ async function crearNuevoAdmin() {
 
         if (error) throw error;
         
-        // Opcional: Aquí podrías insertar también en la tabla 'personal_ol' si la usas
-        // await db.from('personal_ol').insert({ auth_user_id: data.user.id, email: email, nombre: 'Admin' });
+        // Al usar SQL Trigger, el usuario se registrará automáticamente si lo configuraste así,
+        // de lo contrario, puedes hacer un insert manual en personal_ol aquí.
 
-        alert(`✅ Usuario creado: ${email}\nYa puede iniciar sesión.`);
+        alert(`✅ Usuario creado: ${email}\nSe ha enviado un correo de confirmación (si está activo) o ya puede iniciar sesión.`);
         document.getElementById('newAdminEmail').value = '';
         document.getElementById('newAdminPass').value = '';
 
     } catch (e) {
-        alert("Error: " + e.message);
-    }
-}
-
-// 9. UTILIDADES
-function contactarOwner(tel, nombre) {
-    if(!tel || tel === 'N/A' || tel.length < 5) return alert("Este restaurante no tiene un teléfono válido registrado.");
-    const msg = encodeURIComponent(`Hola, te escribo del soporte de OrdenLista respecto a tu restaurante ${nombre}.`);
-    window.open(`https://wa.me/${tel.replace(/\D/g,'')}?text=${msg}`, '_blank');
-}
-
-async function logout() {
-    if (confirm("¿Cerrar sesión del Panel Maestro?")) {
-        await db.auth.signOut();
-        localStorage.removeItem('master_session');
-        window.location.href = 'index.html'; 
-    }
-}
-
-async function checkAuth() {
-    const { data: { user } } = await db.auth.getUser();
-    if (!user) {
-        // Si no hay usuario logueado, fuera
-        window.location.href = 'index.html';
+        alert("Error al crear administrador: " + e.message);
     }
 }

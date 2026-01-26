@@ -183,3 +183,31 @@ async function checkAuth() {
         // window.location.href = 'login.html';
     }
 }
+// --- GESTIÓN DE PERSONAL ---
+async function crearNuevoAdmin() {
+    const email = document.getElementById('newAdminEmail').value;
+    const pass = document.getElementById('newAdminPass').value;
+
+    if(!email || !pass) return alert("Llena ambos campos");
+    if(pass.length < 6) return alert("La contraseña debe tener al menos 6 caracteres");
+
+    if(!confirm(`¿Dar acceso Master a ${email}?`)) return;
+
+    try {
+        // Importante: Esto crea un usuario en Supabase Auth. 
+        // Por defecto, cualquiera puede registrarse, pero aquí lo controlamos desde el panel.
+        const { data, error } = await db.auth.signUp({
+            email: email,
+            password: pass
+        });
+
+        if (error) throw error;
+
+        alert(`✅ Usuario creado: ${email}\nYa puede iniciar sesión en index.html`);
+        document.getElementById('newAdminEmail').value = '';
+        document.getElementById('newAdminPass').value = '';
+
+    } catch (e) {
+        alert("Error: " + e.message);
+    }
+}

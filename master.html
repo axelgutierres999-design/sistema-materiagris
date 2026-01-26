@@ -18,6 +18,7 @@
             <nav>
                 <ul>
                     <li onclick="cambiarSeccion('lista')" class="active"><span>📋</span> Restaurantes</li>
+                    <li onclick="cambiarSeccion('equipo')"><span>👥</span> Equipo</li>
                     <li onclick="cambiarSeccion('vision3d')"><span>💎</span> Vision 3D</li>
                     <li onclick="cambiarSeccion('ajustes')"><span>⚙️</span> Configuración</li>
                     <li onclick="logout()" style="margin-top: 50px; color: #888;"><span>🚪</span> Salir</li>
@@ -35,6 +36,28 @@
 
                 <div id="listaRestaurantes">
                     <p aria-busy="true" style="color: #666;">Cargando base de datos...</p>
+                </div>
+            </section>
+
+            <section id="sec-equipo" class="seccion" style="display: none;">
+                <header>
+                    <h1 style="margin-bottom: 10px; font-weight: 300;">Equipo Master</h1>
+                    <p style="color: #888;">Agrega personal con acceso a este panel.</p>
+                </header>
+
+                <div style="background: rgba(255,255,255,0.05); padding: 25px; border-radius: 12px; margin-bottom: 30px; border: 1px dashed #444;">
+                    <h3 style="margin-top: 0; color: white;">Nuevo Administrador</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <input type="email" id="newAdminEmail" class="search-bar" placeholder="Correo electrónico" style="margin:0;">
+                        <input type="password" id="newAdminPass" class="search-bar" placeholder="Contraseña temporal" style="margin:0;">
+                    </div>
+                    <button onclick="crearNuevoAdmin()" class="btn-outline" style="width: 100%; margin-top: 15px; background: white; color: black; font-weight: bold;">
+                        Crear Acceso
+                    </button>
+                </div>
+
+                <div id="listaPersonal">
+                    <p style="opacity: 0.5; font-size: 0.9rem;">* Los nuevos usuarios recibirán acceso inmediato al panel.</p>
                 </div>
             </section>
 
@@ -67,7 +90,7 @@
     </div>
 
     <dialog id="modalDetalle">
-        <article style="min-width: 400px;">
+        <article style="min-width: 400px; background: #111; border: 1px solid #333;">
             <header>
                 <h3 id="detNombre" style="margin: 0; color: white;">Nombre</h3>
                 <button aria-label="Close" class="contrast" onclick="document.getElementById('modalDetalle').close()" style="float: right; background: transparent; color: white; border: none;">✕</button>
@@ -78,7 +101,7 @@
 
             <footer style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 10px; border-top: 1px solid #333;">
                 <button class="secondary outline" onclick="document.getElementById('modalDetalle').close()" style="border-color: #444; color: #aaa;">Cerrar</button>
-                </footer>
+            </footer>
         </article>
     </dialog>
 

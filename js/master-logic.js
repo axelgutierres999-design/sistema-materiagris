@@ -134,11 +134,13 @@ function cambiarSeccion(id) {
 
 // 6. GESTIÓN DE PAGOS Y SUSCRIPCIONES
 async function actualizarPago(restauranteId, nuevoEstado) {
+    // Confirmación visual
     if (!confirm(`¿Estás seguro de cambiar el estado a: ${nuevoEstado.toUpperCase()}?`)) return;
 
     try {
-        // Solo enviamos el estado. El TRIGGER de SQL que instalamos antes
-        // se encargará de sumar los 30 días automáticamente si es 'pagado'.
+        // 1. Enviamos SOLO el estado. 
+        // Tu Trigger en SQL ("procesar_pago_y_sync") se encargará de 
+        // calcular la fecha y actualizar la tabla 'restaurantes' automáticamente.
         const { error } = await db
             .from('suscripciones')
             .update({ 
@@ -148,17 +150,20 @@ async function actualizarPago(restauranteId, nuevoEstado) {
 
         if (error) throw error;
 
+        // 2. Éxito visual
         alert("✅ Estado actualizado correctamente.");
-        
-        // Cerramos el modal y recargamos la lista
+
+        // 3. Cerramos modal
         const modal = document.getElementById('modalDetalle');
-        if (modal) modal.close();
-        
+        if (modal && modal.open) modal.close();
+
+        // 4. IMPORTANTE: Forzar recarga completa de la lista
+        // para ver el nuevo estado y la nueva fecha que calculó SQL
         await cargarRestaurantes(); 
-        
+
     } catch (err) {
-        console.error("Error en update:", err);
-        alert("Error al actualizar: " + err.message);
+        console.error("Error crítico:", err);
+        alert("❌ Error al actualizar: " + err.message);
     }
 }
 

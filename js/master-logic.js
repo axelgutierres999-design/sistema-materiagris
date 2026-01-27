@@ -137,24 +137,27 @@ async function actualizarPago(restauranteId, nuevoEstado) {
     if (!confirm(`¿Estás seguro de cambiar el estado a: ${nuevoEstado.toUpperCase()}?`)) return;
 
     try {
+        // Solo enviamos el estado. El TRIGGER de SQL que instalamos antes
+        // se encargará de sumar los 30 días automáticamente si es 'pagado'.
         const { error } = await db
             .from('suscripciones')
             .update({ 
-                estado_pago: nuevoEstado,
-                // Si el pago es exitoso, extendemos la fecha 30 días a partir de hoy
-                fecha_vencimiento: nuevoEstado === 'pagado' ? 
-                    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() : 
-                    undefined
+                estado_pago: nuevoEstado 
             })
             .eq('restaurante_id', restauranteId);
 
         if (error) throw error;
 
         alert("✅ Estado actualizado correctamente.");
-        await cargarRestaurantes(); // Recargar lista para ver cambios
-        document.getElementById('modalDetalle').close();
+        
+        // Cerramos el modal y recargamos la lista
+        const modal = document.getElementById('modalDetalle');
+        if (modal) modal.close();
+        
+        await cargarRestaurantes(); 
         
     } catch (err) {
+        console.error("Error en update:", err);
         alert("Error al actualizar: " + err.message);
     }
 }

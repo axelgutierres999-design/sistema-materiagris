@@ -77,6 +77,11 @@ function renderizarLista(lista) {
     lista.forEach(res => {
         // Datos de suscripción seguros (si no hay, por defecto es mes_gratuito)
         const susc = (res.suscripciones && res.suscripciones[0]) || { estado_pago: 'mes_gratuito' };
+        const diasRestantes = susc.fecha_vencimiento
+  ? Math.ceil(
+      (new Date(susc.fecha_vencimiento) - new Date()) / (1000 * 60 * 60 * 24)
+    )
+  : null;
         
         // Mapeo de estilos por estado
         const statusMap = {
@@ -101,6 +106,9 @@ function renderizarLista(lista) {
                     <span class="status-badge ${currentStatus.clase}" ${extraStyle}>
                         ${currentStatus.label}
                     </span>
+                    <small style="display:block; margin-top:4px; color:#aaa; font-size:0.75rem;">
+  ⏳ ${diasRestantes !== null ? diasRestantes + ' días restantes' : '—'}
+</small>
                     <div style="margin-top: 12px;">
                         <button class="btn-outline" style="font-size: 0.8rem; padding: 5px 10px;" onclick="verDetalle('${res.id}')">
                             Gestionar ⚙️
@@ -176,7 +184,11 @@ async function verDetalle(id) {
     const modal = document.getElementById('modalDetalle');
     
     let fechaVenc = susc.fecha_vencimiento ? new Date(susc.fecha_vencimiento).toLocaleDateString() : "Indefinida";
-
+const diasRestantes = susc.fecha_vencimiento
+  ? Math.ceil(
+      (new Date(susc.fecha_vencimiento) - new Date()) / (1000 * 60 * 60 * 24)
+    )
+  : null;
     document.getElementById('detNombre').innerText = res.nombre;
     document.getElementById('detContenido').innerHTML = `
         <div style="margin-bottom: 20px;">
@@ -192,7 +204,10 @@ async function verDetalle(id) {
                 <span class="status-badge ${susc.estado_pago === 'pagado' ? 'status-pagado' : 'status-gratis'}" style="font-size:1rem;">
                     ${susc.estado_pago.toUpperCase()}
                 </span>
-                <small style="color:#888;">Vence: ${fechaVenc}</small>
+                <small style="color:#888;">
+  Vence: ${fechaVenc}
+  ${diasRestantes !== null ? ` · ⏳ ${diasRestantes} días restantes` : ''}
+</small>
             </div>
 
             <hr style="border-color: #333; margin: 15px 0;">

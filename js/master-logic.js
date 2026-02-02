@@ -228,6 +228,16 @@ const diasRestantes = susc.fecha_vencimiento
                 📱 Contactar por WhatsApp
              </button>
         </div>
+        
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px dashed #ff4444;">
+    <p style="color:#ff4444; font-size: 0.8rem; margin-bottom:10px; font-weight:bold;">⚠️ ZONA PELIGROSA</p>
+    <button onclick="eliminarRestaurante('${res.id}', '${res.nombre}')" 
+            style="width:100%; background:transparent; color:#ff4444; border:1px solid #ff4444; padding:8px; border-radius:8px; cursor:pointer; font-size:0.8rem;">
+        Borrar Restaurante Definitivamente 🗑️
+    </button>
+</div>
+
+        
     `;
     modal.showModal();
 }
@@ -285,5 +295,36 @@ async function crearNuevoAdmin() {
 
     } catch (e) {
         alert("Error al crear administrador: " + e.message);
+    }
+}
+// Función para borrar restaurante definitivamente
+async function eliminarRestaurante(id, nombre) {
+    const confirmacion1 = confirm(`¿ESTÁS SEGURO? Esta acción borrará permanentemente el restaurante "${nombre}" y TODOS sus datos (productos, ventas, perfiles, etc.).`);
+    
+    if (confirmacion1) {
+        const confirmacion2 = prompt(`Para confirmar la eliminación total, escribe el nombre del restaurante: "${nombre}"`);
+
+        if (confirmacion2 === nombre) {
+            try {
+                const { error } = await db
+                    .from('restaurantes')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                alert("✅ Restaurante y datos asociados eliminados correctamente.");
+                
+                // Cerrar modal y recargar lista
+                document.getElementById('modalDetalle').close();
+                await cargarRestaurantes();
+
+            } catch (err) {
+                console.error("Error al eliminar:", err);
+                alert("❌ Error al eliminar: " + err.message);
+            }
+        } else {
+            alert("⚠️ El nombre no coincide. Operación cancelada.");
+        }
     }
 }

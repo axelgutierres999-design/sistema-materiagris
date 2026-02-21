@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Floor Planner Pro</title>
+
+<link rel="stylesheet" href="style.css">
+<script src="https://unpkg.com/konva@9/konva.min.js"></script>
+
+<style>
+body { margin: 0; font-family: Arial, sans-serif; background: #f4f4f4; }
+.app-wrapper { display: flex; justify-content: center; padding: 20px; height: 90vh;}
+.main-card { display: flex; background: white; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden; }
+.sidebar { width: 80px; background: #1e1e1e; color: white; padding: 10px; }
+.toolbox { width: 180px; background: #f9f9f9; padding: 10px; border-right: 1px solid #ddd; overflow-y: auto; }
+.toolbox h5 { margin: 10px 0 5px 0; color: #555; border-bottom: 1px solid #ccc; padding-bottom: 3px; }
+.tool-item { background: white; border: 1px solid #ddd; padding: 8px; margin-bottom: 8px; text-align: center; cursor: grab; border-radius: 6px; font-size: 12px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
+.tool-item:hover { background: #e9ecef; }
+.canvas-section { padding: 20px; display: flex; flex-direction: column; }
+.canvas-wrapper { border: 2px solid #333; background: white; flex-grow: 1; }
+.bottom-controls { margin-top: 15px; display: flex; gap: 10px; justify-content: center; }
+.control-btn { padding: 10px 15px; border: none; background: #333; color: white; cursor: pointer; border-radius: 5px; font-weight: bold; }
+.control-btn:hover { background: #555; }
+</style>
+
+</head>
+
+<body>
+
+<div class="app-wrapper">
+  <div class="main-card">
+    <div class="sidebar">
+      <h4>Planos</h4>
+    </div>
+
+    <div class="toolbox">
+      
+      <h5>ESTRUCTURA</h5>
+      <div class="tool-item" draggable="true" data-shape="wall">
+        <svg width="60" height="15" viewBox="0 0 100 20"><rect width="100" height="10" fill="black"/></svg> Muro Sólido
+      </div>
+      <div class="tool-item" draggable="true" data-shape="line">
+        <svg width="60" height="15" viewBox="0 0 100 20"><line x1="0" y1="10" x2="100" y2="10" stroke="black" stroke-width="2"/></svg> Línea Delgada
+      </div>
+      <div class="tool-item" draggable="true" data-shape="column">
+        <svg width="20" height="20" viewBox="0 0 40 40"><rect width="40" height="40" fill="black"/></svg> Columna
+      </div>
+      <div class="tool-item" draggable="true" data-shape="door">
+        <svg width="40" height="40" viewBox="0 0 50 50">
+          <line x1="10" y1="40" x2="40" y2="40" stroke="black" stroke-width="2"/>
+          <path d="M 40 40 A 30 30 0 0 0 10 10" fill="none" stroke="black" stroke-dasharray="2,2"/>
+          <line x1="10" y1="10" x2="10" y2="40" stroke="black" stroke-width="2"/>
+        </svg> Puerta
+      </div>
+      <div class="tool-item" draggable="true" data-shape="window">
+        <svg width="60" height="15" viewBox="0 0 100 20">
+          <rect width="100" height="15" fill="none" stroke="black" stroke-width="1"/>
+          <line x1="0" y1="7.5" x2="100" y2="7.5" stroke="black" stroke-width="1"/>
+        </svg> Ventana
+      </div>
+
+      <h5>FORMAS BÁSICAS</h5>
+      <div class="tool-item" draggable="true" data-shape="rectangle">
+        <svg width="40" height="30" viewBox="0 0 60 40"><rect width="60" height="40" fill="none" stroke="black" stroke-width="2"/></svg> Área Libre (Rect)
+      </div>
+      <div class="tool-item" draggable="true" data-shape="circleShape">
+        <svg width="30" height="30" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="none" stroke="black" stroke-width="2"/></svg> Área Libre (Circ)
+      </div>
+
+      <h5>MOBILIARIO</h5>
+      <div class="tool-item" draggable="true" data-shape="bed">
+        <svg width="40" height="50" viewBox="0 0 80 100">
+          <rect x="5" y="5" width="70" height="90" stroke="black" fill="none" stroke-width="2"/>
+          <rect x="15" y="15" width="20" height="15" stroke="black" fill="none"/><rect x="45" y="15" width="20" height="15" stroke="black" fill="none"/>
+          <line x1="5" y1="45" x2="75" y2="45" stroke="black" stroke-width="2"/>
+        </svg> Cama Matrimonial
+      </div>
+      <div class="tool-item" draggable="true" data-shape="sofa">
+        <svg width="50" height="30" viewBox="0 0 100 50">
+          <rect x="5" y="5" width="90" height="40" stroke="black" fill="none" stroke-width="2"/>
+          <rect x="5" y="5" width="15" height="40" stroke="black" fill="none"/><rect x="80" y="5" width="15" height="40" stroke="black" fill="none"/>
+          <rect x="20" y="5" width="60" height="15" stroke="black" fill="none"/>
+        </svg> Sofá 3 Plazas
+      </div>
+      <div class="tool-item" draggable="true" data-shape="dining">
+        <svg width="40" height="40" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="20" stroke="black" fill="none" stroke-width="2"/>
+          <rect x="30" y="5" width="20" height="10" stroke="black" fill="none"/><rect x="30" y="65" width="20" height="10" stroke="black" fill="none"/>
+          <rect x="5" y="30" width="10" height="20" stroke="black" fill="none"/><rect x="65" y="30" width="10" height="20" stroke="black" fill="none"/>
+        </svg> Comedor Redondo
+      </div>
+      <div class="tool-item" draggable="true" data-shape="desk">
+        <svg width="50" height="30" viewBox="0 0 80 50">
+          <rect x="10" y="10" width="60" height="30" stroke="black" fill="none" stroke-width="2"/>
+          <circle cx="40" cy="25" r="8" stroke="black" fill="none"/>
+          <rect x="35" y="35" width="10" height="10" stroke="black" fill="none"/>
+        </svg> Escritorio + Silla
+      </div>
+
+      <h5>RESTAURANTE / COCINA</h5>
+     <div class="tool-item" draggable="true" data-shape="squareTable">
+       <svg width="40" height="40" viewBox="0 0 70 70">
+         <rect x="10" y="10" width="50" height="50" stroke="black" fill="none" stroke-width="2"/>
+        <rect x="25" y="0" width="20" height="10" stroke="black" fill="none"/>
+        <rect x="25" y="60" width="20" height="10" stroke="black" fill="none"/>
+       </svg> Mesa Cuadrada
+     </div>
+
+ <div class="tool-item" draggable="true" data-shape="plant">
+  <svg width="30" height="30" viewBox="0 0 40 40">
+    <circle cx="20" cy="20" r="12" stroke="black" fill="none"/>
+    <line x1="20" y1="20" x2="20" y2="5" stroke="black"/>
+    <line x1="20" y1="20" x2="35" y2="20" stroke="black"/>
+  </svg> Planta/Ornamento
+</div>
+
+<div class="tool-item" draggable="true" data-shape="stove">
+  <svg width="40" height="40" viewBox="0 0 50 50">
+    <rect x="5" y="5" width="40" height="40" stroke="black" fill="none" stroke-width="2"/>
+    <circle cx="15" cy="15" r="5" stroke="black" fill="none"/>
+    <circle cx="35" cy="15" r="5" stroke="black" fill="none"/>
+    <circle cx="15" cy="35" r="5" stroke="black" fill="none"/>
+    <circle cx="35" cy="35" r="5" stroke="black" fill="none"/>
+  </svg> Estufa Industrial
+</div>
+
+<h5>BAÑOS Y SERVICIOS</h5>
+<div class="tool-item" draggable="true" data-shape="toilet">
+  <svg width="30" height="40" viewBox="0 0 40 60">
+    <rect x="5" y="5" width="30" height="15" rx="2" stroke="black" fill="none"/>
+    <path d="M 5 20 Q 5 55 20 55 Q 35 55 35 20" stroke="black" fill="none"/>
+  </svg> Inodoro (WC)
+</div>
+
+<h5>BAR Y ATENCIÓN</h5>
+<div class="tool-item" draggable="true" data-shape="barCounter">
+  <svg width="60" height="30" viewBox="0 0 100 40">
+    <rect x="0" y="5" width="100" height="20" fill="none" stroke="black" stroke-width="2"/>
+    <circle cx="20" cy="30" r="5" stroke="black" fill="none"/>
+    <circle cx="50" cy="30" r="5" stroke="black" fill="none"/>
+    <circle cx="80" cy="30" r="5" stroke="black" fill="none"/>
+  </svg> Barra con Bancos
+</div>
+
+<h5>ARQUITECTURA AVANZADA</h5>
+<div class="tool-item" draggable="true" data-shape="stairs">
+  <svg width="50" height="50" viewBox="0 0 60 60">
+    <rect x="5" y="5" width="50" height="50" stroke="black" fill="none"/>
+    <line x1="5" y1="15" x2="55" y2="15" stroke="black"/>
+    <line x1="5" y1="25" x2="55" y2="25" stroke="black"/>
+    <line x1="5" y1="35" x2="55" y2="35" stroke="black"/>
+    <line x1="5" y1="45" x2="55" y2="45" stroke="black"/>
+    <path d="M 30 50 L 30 10 L 25 15 M 30 10 L 35 15" fill="none" stroke="black"/>
+  </svg> Escaleras
+</div>
+
+<div class="tool-item" draggable="true" data-shape="label">
+  <svg width="40" height="20" viewBox="0 0 60 30">
+    <text x="10" y="20" font-family="Arial" font-size="12" font-weight="bold">TEXTO</text>
+  </svg> Etiqueta/Nombre
+</div>
+<h5>AFORO Y MESAS</h5>
+<div class="tool-item" draggable="true" data-shape="longTable">
+  <svg width="60" height="30" viewBox="0 0 120 60">
+    <rect x="10" y="15" width="100" height="30" stroke="black" fill="none" stroke-width="2"/>
+    <rect x="20" y="5" width="15" height="10" stroke="black" fill="none"/>
+    <rect x="52" y="5" width="15" height="10" stroke="black" fill="none"/>
+    <rect x="85" y="5" width="15" height="10" stroke="black" fill="none"/>
+    <rect x="20" y="45" width="15" height="10" stroke="black" fill="none"/>
+    <rect x="52" y="45" width="15" height="10" stroke="black" fill="none"/>
+    <rect x="85" y="45" width="15" height="10" stroke="black" fill="none"/>
+  </svg> Mesa Grupal (6p)
+</div>
+
+<div class="tool-item" draggable="true" data-shape="booth">
+  <svg width="50" height="40" viewBox="0 0 80 60">
+    <rect x="10" y="10" width="60" height="15" stroke="black" fill="none"/>
+    <rect x="10" y="35" width="60" height="15" stroke="black" fill="none"/>
+    <rect x="15" y="25" width="50" height="10" fill="#eee" stroke="black"/>
+  </svg> Booth / Gabinete
+</div>
+
+<h5>COCINA PRO</h5>
+<div class="tool-item" draggable="true" data-shape="fridge">
+  <svg width="30" height="40" viewBox="0 0 40 60">
+    <rect x="5" y="5" width="30" height="50" stroke="black" fill="none" stroke-width="2"/>
+    <line x1="20" y1="5" x2="20" y2="55" stroke="black"/>
+    <circle cx="15" cy="30" r="2" fill="black"/><circle cx="25" cy="30" r="2" fill="black"/>
+  </svg> Refri Doble
+</div>
+
+<div class="tool-item" draggable="true" data-shape="pizzaOven">
+  <svg width="40" height="40" viewBox="0 0 60 60">
+    <path d="M 10 50 A 20 20 0 1 1 50 50 Z" stroke="black" fill="none" stroke-width="2"/>
+    <rect x="15" y="45" width="30" height="5" fill="black"/>
+  </svg> Horno Pizza/Pan
+</div>
+
+<div class="bottom-controls">
+  <button id="saveImg" class="control-btn" style="background: #28a745;">💾 Guardar Plano</button>
+</div>
+
+<div class="tool-item" draggable="true" data-shape="sink">
+  <svg width="40" height="30" viewBox="0 0 60 40">
+    <rect x="5" y="5" width="50" height="30" stroke="black" fill="none" stroke-width="2"/>
+    <rect x="10" y="10" width="40" height="20" rx="3" stroke="black" fill="none"/>
+  </svg> Fregadero
+</div>
+
+    </div>
+
+    <div class="canvas-section">
+      <div class="canvas-wrapper">
+        <div id="container"></div>
+      </div>
+      <div class="bottom-controls">
+        <button id="clear" class="control-btn">Borrar Selección</button>
+        <button id="undo" class="control-btn">Regresar (Deshacer)</button>
+        <button id="drawMode" class="control-btn">✏️ Lápiz: Apagado</button>
+        <button id="saveImg" class="control-btn" style="background: #28a745;">💾 Guardar Plano</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="planos.js"></script>
+</body>
+</html>

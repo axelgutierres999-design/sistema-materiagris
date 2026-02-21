@@ -196,6 +196,12 @@ const diasRestantes = susc.fecha_vencimiento
             <p style="margin:0;"><strong>📧 Email:</strong> ${res.correo_admin}</p>
             <p style="margin:0;"><strong>📞 Teléfono:</strong> ${res.telefono || 'No registrado'}</p>
         </div>
+        <div style="margin-bottom: 20px;">
+            <button onclick="abrirDiseñadorPlanos('${res.id}', '${res.nombre}')" style="width:100%; background:#4A90E2; color:white; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; font-size: 0.9rem;">
+                🗺️ Diseñar / Ver Plano del Restaurante
+            </button>
+        </div>
+        <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid #333;">
 
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid #333;">
             <p style="color:#aaa; font-size: 0.9rem; margin-bottom:10px;">Estado de Suscripción</p>
@@ -327,4 +333,14 @@ async function eliminarRestaurante(id, nombre) {
             alert("⚠️ El nombre no coincide. Operación cancelada.");
         }
     }
+}
+// ===============================
+// INTEGRACIÓN CON CREADOR DE PLANOS
+// ===============================
+function abrirDiseñadorPlanos(idRestaurante, nombreRestaurante) {
+    // Codificamos el nombre por si tiene espacios o caracteres especiales
+    const nombreCodificado = encodeURIComponent(nombreRestaurante);
+    
+    // Abrimos la nueva página en una pestaña nueva pasando los datos por la URL
+    window.open(`planos.html?restaurante_id=${idRestaurante}&nombre=${nombreCodificado}`, '_blank');
 }

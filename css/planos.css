@@ -1,0 +1,145 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #d9d9d9;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 200px;
+  background: #8e8e8e;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workspace {
+  flex: 1;
+  background: #f2f2f2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#container {
+  width: 800px;
+  height: 600px;
+  background-color: white;
+  border: 2px solid black;
+}
+body {
+  margin: 0;
+  background: #d9d9d9;
+  font-family: Arial, sans-serif;
+}
+
+/* Marco gris exterior */
+.app-wrapper {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenedor grande */
+.main-card {
+  width: 1200px;
+  height: 750px;
+  background: #8e8e8e;
+  border-radius: 40px;
+  padding: 40px;
+  display: flex;
+  gap: 30px;
+}
+
+/* Sidebar */
+.sidebar {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.menu-btn {
+  background: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 40px;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.divider {
+  width: 3px;
+  height: 100%;
+  background: black;
+  margin-top: 30px;
+}
+
+/* Área blanca del plano */
+.canvas-section {
+  flex: 1;
+  background: #f2f2f2;
+  border-radius: 30px;
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.canvas-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#container {
+  width: 700px;
+  height: 600px;
+  background: white;
+  border-top: 4px solid black;
+  border-bottom: 4px solid black;
+}
+
+/* Botones inferiores */
+.bottom-controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 60px;
+}
+
+.control-btn {
+  background: white;
+  border: 2px solid black;
+  border-radius: 40px;
+  padding: 10px 40px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.toolbox {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.tool-item {
+  background: white;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: grab;
+  text-align: center;
+  font-weight: bold;
+  border: 2px solid black;
+}
+
+.tool-item:active {
+  cursor: grabbing;
+}

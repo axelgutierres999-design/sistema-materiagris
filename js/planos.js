@@ -71,10 +71,28 @@ function restoreState(stateArr) {
 // ===============================
 function enableShape(shape) {
   shape.name('item');
-  shape.on('click', () => { transformer.nodes([shape]); layer.draw(); });
-  shape.on('dragmove', () => { shape.x(snap(shape.x())); shape.y(snap(shape.y())); });
+  
+  // Añadimos 'tap' para tablets
+  shape.on('click tap', (e) => { 
+    // Evitamos que el evento se propague al fondo (stage)
+    e.cancelBubble = true; 
+    transformer.nodes([shape]); 
+    layer.draw(); 
+  });
+
+  shape.on('dragmove', () => { 
+    shape.x(snap(shape.x())); 
+    shape.y(snap(shape.y())); 
+  });
+
   shape.on('dragend', () => saveHistory());
-  shape.on('transformend', () => { shape.x(snap(shape.x())); shape.y(snap(shape.y())); layer.draw(); saveHistory(); });
+
+  shape.on('transformend', () => { 
+    shape.x(snap(shape.x())); 
+    shape.y(snap(shape.y())); 
+    layer.draw(); 
+    saveHistory(); 
+  });
 }
 
 // ===============================
@@ -296,41 +314,78 @@ function createLabel(x, y) {
 }
 
 // ===============================
-// DRAG DESDE SIDEBAR
+// LÓGICA HÍBRIDA (PC DRAG / TABLET TAP)
 // ===============================
+let activeTool = null; // Para saber qué herramienta está seleccionada en tablet
+
 document.querySelectorAll(".tool-item").forEach(item => {
-  item.addEventListener("dragstart", (e) => draggedShapeType = e.target.dataset.shape );
+    // 1. Para PC (Arrastrar)
+    item.addEventListener("dragstart", (e) => {
+        draggedShapeType = e.target.dataset.shape;
+    });
+
+    // 2. Para Tablet (Tocar)
+    item.addEventListener("click", (e) => {
+        // Quitamos clase activa de otros
+        document.querySelectorAll(".tool-item").forEach(i => i.classList.remove('active-tablet'));
+        
+        // Si tocamos el mismo, lo desactivamos
+        if (activeTool === item.dataset.shape) {
+            activeTool = null;
+        } else {
+            activeTool = item.dataset.shape;
+            item.classList.add('active-tablet');
+        }
+    });
 });
 
-const container = stage.container();
-container.addEventListener("dragover", (e) => e.preventDefault());
-
-container.addEventListener("drop", (e) => {
-  e.preventDefault();
-  stage.setPointersPositions(e);
-  const pos = stage.getPointerPosition();
-  if (!pos) return;
-
-  // Mapeo de herramientas a funciones
-  const shapeMap = {
+// MAPEO GLOBAL DE FUNCIONES (Sácalo de la función drop para que sea accesible)
+const shapeMap = {
     'wall': createWall, 'line': createLine, 'column': createColumn, 
     'window': createWindow, 'door': createDoor,
     'rectangle': createRectangle, 'circleShape': createCircleShape,
     'bed': createBed, 'sofa': createSofa, 'dining': createDiningTable, 'desk': createDesk,
-    // --- NUEVAS ---
     'plant': createPlant, 'squareTable': createSquareTable, 
     'stove': createStove, 'sink': createSink, 'toilet': createToilet, 'barCounter': createBarCounter,
-    'stairs': createStairs,'label': createLabel, 'LongTable': createLongTable,
-    'Booth': createBooth,'Fridge': createFridge,
-    
-  };
+    'stairs': createStairs,'label': createLabel, 'longTable': createLongTable,
+    'booth': createBooth,'fridge': createFridge,
+};
 
-  if (shapeMap[draggedShapeType]) {
-    shapeMap[draggedShapeType](pos.x, pos.y);
-    saveHistory();
-  }
-  
-  draggedShapeType = null;
+// EVENTO DE CLICK / TAP EN EL LIENZO PARA COLOCAR
+stage.on('click tap', (e) => {
+    // Si el clic es en el fondo y hay una herramienta activa (modo tablet)
+    if (e.target === stage && activeTool) {
+        const pos = stage.getPointerPosition();
+        if (shapeMap[activeTool]) {
+            shapeMap[activeTool](pos.x, pos.y);
+            saveHistory();
+        }
+        // Opcional: Desactivar herramienta tras poner una
+        // activeTool = null;
+        // document.querySelectorAll(".tool-item").forEach(i => i.classList.remove('active-tablet'));
+    }
+    
+    // Deseleccionar si toca el fondo (esto ya lo tenías, asegúrate que no choque)
+    if (e.target === stage && !activeTool) {
+        transformer.nodes([]);
+        layer.draw();
+    }
+});
+
+// Mantener la lógica de DROP original para que siga funcionando en PC
+const containerElement = stage.container();
+containerElement.addEventListener("dragover", (e) => e.preventDefault());
+containerElement.addEventListener("drop", (e) => {
+    e.preventDefault();
+    stage.setPointersPositions(e);
+    const pos = stage.getPointerPosition();
+    if (!pos) return;
+
+    if (shapeMap[draggedShapeType]) {
+        shapeMap[draggedShapeType](pos.x, pos.y);
+        saveHistory();
+    }
+    draggedShapeType = null;
 });
 
 // Guardar el estado inicial (lienzo en blanco)

@@ -143,3 +143,22 @@ body {
 .tool-item:active {
   cursor: grabbing;
 }
+/* Evita que la tablet scrollee o haga gestos raros mientras usas el diseñador */
+#container {
+    touch-action: none; 
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Indicador visual para saber qué herramienta está seleccionada en tablet */
+.tool-item.active-tablet {
+    background: #007bff !important;
+    color: white !important;
+    border-color: #0056b3;
+}
+
+.tool-item.active-tablet svg rect, 
+.tool-item.active-tablet svg circle, 
+.tool-item.active-tablet svg line {
+    stroke: white !important;
+}

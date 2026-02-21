@@ -72,9 +72,11 @@ function restoreState(stateArr) {
 function enableShape(shape) {
   shape.name('item');
   
-  // Añadimos 'tap' para tablets
+  // Seleccionar automáticamente al crear o tocar
+  transformer.nodes([shape]); 
+  layer.draw();
+
   shape.on('click tap', (e) => { 
-    // Evitamos que el evento se propague al fondo (stage)
     e.cancelBubble = true; 
     transformer.nodes([shape]); 
     layer.draw(); 
@@ -314,32 +316,35 @@ function createLabel(x, y) {
 }
 
 // ===============================
-// LÓGICA HÍBRIDA (PC DRAG / TABLET TAP)
+// LÓGICA DE CREACIÓN (PC DRAG / TABLET CLICK)
 // ===============================
-let activeTool = null; // Para saber qué herramienta está seleccionada en tablet
 
 document.querySelectorAll(".tool-item").forEach(item => {
-    // 1. Para PC (Arrastrar)
+    // 1. Para PC: Arrastrar y soltar
     item.addEventListener("dragstart", (e) => {
         draggedShapeType = e.target.dataset.shape;
     });
 
-    // 2. Para Tablet (Tocar)
+    // 2. Para Tablet / Click simple: Crear en el centro
     item.addEventListener("click", (e) => {
-        // Quitamos clase activa de otros
-        document.querySelectorAll(".tool-item").forEach(i => i.classList.remove('active-tablet'));
-        
-        // Si tocamos el mismo, lo desactivamos
-        if (activeTool === item.dataset.shape) {
-            activeTool = null;
-        } else {
-            activeTool = item.dataset.shape;
-            item.classList.add('active-tablet');
+        const type = item.dataset.shape;
+        if (shapeMap[type]) {
+            // Calculamos el centro del área visible del stage
+            const centerX = stage.width() / 2;
+            const centerY = stage.height() / 2;
+            
+            // Creamos la figura inmediatamente
+            shapeMap[type](centerX, centerY);
+            saveHistory();
+
+            // Feedback visual rápido (opcional)
+            item.style.background = "#d4edda";
+            setTimeout(() => item.style.background = "white", 200);
         }
     });
 });
 
-// MAPEO GLOBAL DE FUNCIONES (Sácalo de la función drop para que sea accesible)
+// MAPEO GLOBAL DE FUNCIONES
 const shapeMap = {
     'wall': createWall, 'line': createLine, 'column': createColumn, 
     'window': createWindow, 'door': createDoor,
@@ -351,28 +356,16 @@ const shapeMap = {
     'booth': createBooth,'fridge': createFridge,
 };
 
-// EVENTO DE CLICK / TAP EN EL LIENZO PARA COLOCAR
+// EVENTO EN EL LIENZO: Solo para deseleccionar o Dibujo Libre
 stage.on('click tap', (e) => {
-    // Si el clic es en el fondo y hay una herramienta activa (modo tablet)
-    if (e.target === stage && activeTool) {
-        const pos = stage.getPointerPosition();
-        if (shapeMap[activeTool]) {
-            shapeMap[activeTool](pos.x, pos.y);
-            saveHistory();
-        }
-        // Opcional: Desactivar herramienta tras poner una
-        // activeTool = null;
-        // document.querySelectorAll(".tool-item").forEach(i => i.classList.remove('active-tablet'));
-    }
-    
-    // Deseleccionar si toca el fondo (esto ya lo tenías, asegúrate que no choque)
-    if (e.target === stage && !activeTool) {
-        transformer.nodes([]);
+    // Si el clic es en el fondo (fuera de un objeto)
+    if (e.target === stage) {
+        transformer.nodes([]); // Quitamos la selección
         layer.draw();
     }
 });
 
-// Mantener la lógica de DROP original para que siga funcionando en PC
+// Mantener la lógica de DROP original para PC
 const containerElement = stage.container();
 containerElement.addEventListener("dragover", (e) => e.preventDefault());
 containerElement.addEventListener("drop", (e) => {

@@ -489,3 +489,127 @@ document.getElementById("saveImg").addEventListener("click", () => {
   gridLines.forEach(l => l.show());
   layer.draw();
 });
+// Función para obtener líneas de guía (Smart Guides)
+function getSnappingGuides(targetNode) {
+    const stage = targetNode.getStage();
+    const itemNodes = stage.find('.item').filter(node => node !== targetNode);
+    
+    const guides = { x: [], y: [] };
+
+    itemNodes.forEach(node => {
+        const box = node.getClientRect();
+        // Snapping a bordes y centros
+        guides.x.push(box.x, box.x + box.width, box.x + box.width / 2);
+        guides.y.push(box.y, box.y + box.height, box.y + box.height / 2);
+    });
+    return guides;
+}
+
+// Dentro de enableShape, mejora el evento dragmove:
+shape.on('dragmove', (e) => {
+    const guides = getSnappingGuides(e.target);
+    const box = e.target.getClientRect();
+    const absPos = e.target.absolutePosition();
+    
+    // Lógica de imán (umbral de 10 pixeles)
+    guides.x.forEach(lineX => {
+        if (Math.abs(lineX - box.x) < 10) e.target.x(lineX);
+    });
+    // ... repetir para Y
+});
+let clipboard = null;
+
+window.addEventListener('keydown', (e) => {
+    const selected = transformer.nodes()[0];
+    
+    // Borrar (Delete / Backspace)
+    if (e.key === 'Delete' && selected) {
+        selected.destroy();
+        transformer.nodes([]);
+        saveHistory();
+    }
+
+    // Copiar (Ctrl + C)
+    if (e.ctrlKey && e.key === 'c' && selected) {
+        clipboard = selected.toObject();
+    }
+
+    // Pegar (Ctrl + V)
+    if (e.ctrlKey && e.key === 'v' && clipboard) {
+        const newNode = Konva.Node.create(clipboard);
+        newNode.x(newNode.x() + 20); // Desplazar un poco
+        newNode.y(newNode.y() + 20);
+        enableShape(newNode);
+        layer.add(newNode);
+        saveHistory();
+    }
+});
+const tooltip = new Konva.Text({
+    text: '',
+    fontFamily: 'Calibri',
+    fontSize: 12,
+    padding: 5,
+    fill: 'white',
+    backgroundColor: 'black',
+    visible: false
+});
+layer.add(tooltip);
+
+// Actualizar en transformación
+transformer.on('transform', (e) => {
+    const node = transformer.nodes()[0];
+    const rotation = Math.round(node.rotation());
+    const width = Math.round(node.width() * node.scaleX());
+    const height = Math.round(node.height() * node.scaleY());
+
+    tooltip.visible(true);
+    tooltip.text(`Ángulo: ${rotation}°\nDim: ${width}x${height} cm`);
+    tooltip.position({
+        x: node.x() + 50,
+        y: node.y() - 40
+    });
+    layer.batchDraw();
+});
+
+transformer.on('transformend', () => tooltip.visible(false));
+const selectionRectangle = new Konva.Rect({
+    fill: 'rgba(0,0,255,0.1)',
+    visible: false,
+    stroke: 'rgba(0,0,255,0.5)',
+    strokeWidth: 1
+});
+layer.add(selectionRectangle);
+
+let x1, y1, x2, y2;
+stage.on('mousedown touchstart', (e) => {
+    if (e.target !== stage) return;
+    x1 = stage.getPointerPosition().x;
+    y1 = stage.getPointerPosition().y;
+    selectionRectangle.visible(true);
+    selectionRectangle.width(0);
+    selectionRectangle.height(0);
+});
+
+stage.on('mousemove touchmove', () => {
+    if (!selectionRectangle.visible()) return;
+    x2 = stage.getPointerPosition().x;
+    y2 = stage.getPointerPosition().y;
+
+    selectionRectangle.setAttrs({
+        x: Math.min(x1, x2),
+        y: Math.min(y1, y2),
+        width: Math.abs(x2 - x1),
+        height: Math.abs(y2 - y1),
+    });
+});
+
+stage.on('mouseup touchend', () => {
+    if (!selectionRectangle.visible()) return;
+    selectionRectangle.visible(false);
+    const shapes = stage.find('.item');
+    const box = selectionRectangle.getClientRect();
+    const selected = shapes.filter(shape => 
+        Konva.Util.haveIntersection(box, shape.getClientRect())
+    );
+    transformer.nodes(selected);
+});

@@ -192,3 +192,45 @@ dialog article {
     aside h2 { display: none; }
     nav li { margin-bottom: 0; font-size: 0.8rem; padding: 8px 12px; }
 }
+/* Estilos para las tarjetas de Planos */
+.plano-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    transition: 0.3s ease;
+}
+
+.plano-card:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+    transform: translateY(-5px);
+}
+
+.plano-card h4 {
+    color: white;
+    margin: 0 0 10px 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.plano-card p {
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 15px;
+}
+
+.plano-card .badge-res {
+    display: inline-block;
+    padding: 4px 8px;
+    background: #222;
+    color: #eee;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin-bottom: 15px;
+}
+
+.plano-actions {
+    display: flex;
+    gap: 10px;
+}

@@ -105,6 +105,25 @@
     </div>
 </section>
 
+<section id="sec-planos" class="seccion" style="display: none;">
+    <header>
+        <h1 style="margin-bottom: 10px; font-weight: 300;">🗺️ Diseñador de Planos</h1>
+        <p style="color: #888; margin-bottom: 20px;">Gestiona la distribución de mesas de tus clientes.</p>
+        
+        <button onclick="window.location.href='planos.html'" class="btn-outline" style="background: white; color: black; font-weight: bold; padding: 12px 25px;">
+            ➕ Crear Nuevo Plano
+        </button>
+    </header>
+
+    <hr style="border-color: #333; margin: 30px 0;">
+
+    <h3 style="color: white; font-weight: 300; margin-bottom: 20px;">Planos Guardados</h3>
+    
+    <div id="contenedorListaPlanos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+        <p style="color: #666;">Cargando planos...</p>
+    </div>
+</section>
+
     <dialog id="modalDetalle">
         <article style="min-width: 400px; background: #111; border: 1px solid #333;">
             <header>

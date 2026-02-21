@@ -130,12 +130,13 @@ function cambiarSeccion(id) {
     if (seccion) {
         seccion.classList.add('activa');
         seccion.style.display = 'block';
+        
+        // --- LÍNEA NUEVA AÑADIDA ---
+        if (id === 'planos') cargarListaPlanos(); 
     }
     
-    // Ocultar las otras secciones explícitamente
     document.querySelectorAll('.seccion:not(.activa)').forEach(s => s.style.display = 'none');
 
-    // Activar el botón del menú correspondiente
     const li = Array.from(document.querySelectorAll('nav li')).find(el => el.getAttribute('onclick')?.includes(id));
     if (li) li.classList.add('active');
 }
@@ -196,7 +197,7 @@ const diasRestantes = susc.fecha_vencimiento
             <p style="margin:0;"><strong>📧 Email:</strong> ${res.correo_admin}</p>
             <p style="margin:0;"><strong>📞 Teléfono:</strong> ${res.telefono || 'No registrado'}</p>
         </div>
-        
+
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid #333;">
 
         <div style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; border: 1px solid #333;">
@@ -339,4 +340,58 @@ function abrirDiseñadorPlanos(idRestaurante, nombreRestaurante) {
     
     // Abrimos la nueva página en una pestaña nueva pasando los datos por la URL
     window.open(`planos.html?restaurante_id=${idRestaurante}&nombre=${nombreCodificado}`, '_blank');
+    // Función para cargar los planos desde Supabase
+async function cargarListaPlanos() {
+    const contenedor = document.getElementById('contenedorListaPlanos');
+    contenedor.innerHTML = '<p aria-busy="true">Buscando planos en la nube...</p>';
+
+    try {
+        // Traemos los planos. (Asumo que tu tabla se llama 'planos')
+        // Si tienes una relación con restaurantes, traemos el nombre también
+        const { data, error } = await db
+            .from('planos')
+            .select('*, restaurantes(nombre)');
+
+        if (error) throw error;
+
+        if (data.length === 0) {
+            contenedor.innerHTML = '<p style="color: #555;">No hay planos diseñados todavía.</p>';
+            return;
+        }
+
+        contenedor.innerHTML = ''; // Limpiar mensaje de carga
+
+        data.forEach(plano => {
+            const nombreRestaurante = plano.restaurantes ? plano.restaurantes.nombre : "No asignado";
+            const card = `
+                <div class="plano-card">
+                    <h4>${plano.nombre_plano || 'Diseño sin título'}</h4>
+                    <div class="badge-res">📍 ${nombreRestaurante}</div>
+                    <p>Última modificación: ${new Date(plano.creado_at || plano.creado_en).toLocaleDateString()}</p>
+                    
+                    <div class="plano-actions">
+                        <button class="btn-outline" style="font-size:0.75rem;" onclick="window.location.href='planos.html?id=${plano.id}'">
+                            ✏️ Editar Plano
+                        </button>
+                        <button class="btn-outline" style="font-size:0.75rem; border-color:#444; color:#888;" onclick="eliminarPlano('${plano.id}')">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `;
+            contenedor.insertAdjacentHTML('beforeend', card);
+        });
+
+    } catch (err) {
+        console.error("Error cargando planos:", err);
+        contenedor.innerHTML = '<p style="color:red;">Error al conectar con la tabla de planos.</p>';
+    }
+}
+
+// Función para borrar (opcional pero recomendada)
+async function eliminarPlano(id) {
+    if(!confirm("¿Borrar este diseño de plano permanentemente?")) return;
+    const { error } = await db.from('planos').delete().eq('id', id);
+    if(!error) cargarListaPlanos();
+}
 }

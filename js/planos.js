@@ -3,7 +3,7 @@
 // ===============================
 const width = 750;
 const height = 650;
-const gridSize = 20;
+const gridSize = 5;
 let draggedShapeType = null;
 
 // ===============================
@@ -61,7 +61,7 @@ function snap(value) { return Math.round(value / gridSize) * gridSize; }
 
 // === NUEVO: FUNCIÓN DE IMÁN INTELIGENTE ===
 function handleSnapping(target) {
-    const LINE_GUIDE_STOPS = 10; 
+    const LINE_GUIDE_STOPS = 5; 
     const itemNodes = stage.find('.item').filter(node => node !== target);
     const box = target.getClientRect();
 
@@ -119,8 +119,16 @@ function enableShape(shape) {
     transformer.nodes([shape]); 
     layer.draw();
 
-    shape.on('dragmove', (e) => {
-        handleSnapping(e.target); // Activa el imán
+   shape.on('dragmove', (e) => {
+
+    if (!isDrawingMode) {
+        e.target.position({
+            x: snap(e.target.x()),
+            y: snap(e.target.y())
+        });
+    }
+
+    handleSnapping(e.target);
         
         // Mostrar coordenadas reales
         tooltip.visible(true);
@@ -160,8 +168,11 @@ function enableShape(shape) {
         transformer.nodes([shape]); 
         layer.draw(); 
     });
-}
 
+     shape.on('dblclick dbltap', () => {
+       openPropertiesPanel(shape);
+    });
+}
 // ===============================
 // FUNCIONES DE CREACIÓN DE FORMAS
 // ===============================
@@ -197,6 +208,19 @@ function createDoor(x, y) {
   const arc = new Konva.Path({ data: 'M 60 60 A 60 60 0 0 0 0 0', stroke: 'black', dash: [4, 4], fill: 'none' });
   group.add(arc);
   enableShape(group); layer.add(group); layer.draw();
+}
+function openPropertiesPanel(shape) {
+  const newColor = prompt("Color (ej: red o #ff0000):", shape.fill() || 'white');
+  if (newColor) shape.fill(newColor);
+
+  const newWidth = prompt("Nuevo ancho:", shape.width());
+  if (newWidth && shape.width) shape.width(parseInt(newWidth));
+
+  const newHeight = prompt("Nuevo alto:", shape.height());
+  if (newHeight && shape.height) shape.height(parseInt(newHeight));
+
+  layer.draw();
+  saveHistory();
 }
 
 // --- Formas Básicas ---
@@ -288,6 +312,20 @@ function createPizzaOven(x, y) {
     width: 20,
     height: 5,
     fill: 'black'
+  }));
+
+  enableShape(group);
+  layer.add(group);
+  layer.draw();
+}
+function createChair(x, y) {
+  const group = new Konva.Group({ x: snap(x), y: snap(y), draggable: true });
+
+  group.add(new Konva.Rect({
+    width: 20,
+    height: 20,
+    stroke: 'black',
+    fill: 'white'
   }));
 
   enableShape(group);
@@ -402,6 +440,21 @@ function createLabel(x, y) {
   layer.add(textNode);
   layer.draw();
 }
+function createTriangle(x, y) {
+  const triangle = new Konva.Line({
+    points: [0, 50, 50, 50, 25, 0],
+    fill: 'white',
+    stroke: 'black',
+    closed: true,
+    x: snap(x),
+    y: snap(y),
+    draggable: true
+  });
+
+  enableShape(triangle);
+  layer.add(triangle);
+  layer.draw();
+}
 
 // ===============================
 // LÓGICA DE CREACIÓN (PC DRAG / TABLET CLICK)
@@ -441,7 +494,7 @@ const shapeMap = {
     'plant': createPlant, 'squareTable': createSquareTable, 
     'stove': createStove, 'sink': createSink, 'toilet': createToilet, 'barCounter': createBarCounter,
     'stairs': createStairs,'label': createLabel, 'longTable': createLongTable,
-    'booth': createBooth,'fridge': createFridge,
+    'booth': createBooth,'fridge': createFridge,'chair': createChair,'triangle': createTriangle,
 };
 
 // EVENTO EN EL LIENZO: Solo para deseleccionar o Dibujo Libre

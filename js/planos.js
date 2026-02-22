@@ -705,3 +705,32 @@ document.getElementById('toBack').addEventListener('click', () => {
     transformer.nodes().forEach(n => n.moveToBottom());
     layer.draw();
 });
+async function guardarPlano() {
+
+    const params = new URLSearchParams(window.location.search);
+    const restauranteId = params.get("restaurante_id");
+
+    if (!restauranteId) {
+        alert("⚠️ Este plano no está vinculado a un restaurante.");
+        return;
+    }
+
+    const nombrePlano = prompt("Nombre del plano:", "Plano Principal");
+    if (!nombrePlano) return;
+
+    const planoJSON = stage.toJSON();
+
+    const { error } = await supabase
+        .from('planos')
+        .insert({
+            restaurante_id: restauranteId,
+            nombre_plano: nombrePlano,
+            datos: planoJSON
+        });
+
+    if (error) {
+        alert("❌ Error guardando: " + error.message);
+    } else {
+        alert("✅ Plano guardado correctamente.");
+    }
+}

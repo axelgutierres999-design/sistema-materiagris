@@ -345,6 +345,7 @@ async function cargarListaPlanos() {
     const contenedor = document.getElementById('contenedorListaPlanos');
     contenedor.innerHTML = '<p aria-busy="true">Buscando planos en la nube...</p>';
 
+
     try {
         // Traemos los planos. (Asumo que tu tabla se llama 'planos')
         // Si tienes una relación con restaurantes, traemos el nombre también

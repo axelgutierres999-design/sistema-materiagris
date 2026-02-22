@@ -20,6 +20,31 @@ const transformer = new Konva.Transformer({ rotateEnabled: true, enabledAnchors:
 layer.add(transformer);
 
 // ===============================
+// TOOLTIP (COORDENADAS Y MEDIDAS)
+// ===============================
+const tooltipRect = new Konva.Rect({
+  fill: 'white',
+  stroke: 'black',
+  strokeWidth: 1,
+  cornerRadius: 4,
+  visible: false
+});
+
+const tooltip = new Konva.Text({
+  fontSize: 14,
+  fontFamily: 'Arial',
+  fill: 'black',
+  padding: 5,
+  visible: false
+});
+
+layer.add(tooltipRect);
+layer.add(tooltip);
+
+// Clipboard global
+let clipboard = null;
+
+// ===============================
 // DIBUJAR GRID
 // ===============================
 function drawGrid() {
@@ -30,9 +55,8 @@ function drawGrid() {
     layer.add(new Konva.Line({ points: [0, j * gridSize, width, j * gridSize], stroke: '#e0e0e0', strokeWidth: 1, listening: false }));
   }
 }
-drawGrid();enableShape
+drawGrid();
 
-function snap(value) { return Math.round(value / gridSize) * gridSize; }
 function snap(value) { return Math.round(value / gridSize) * gridSize; }
 
 // === NUEVO: FUNCIÓN DE IMÁN INTELIGENTE ===
@@ -246,6 +270,29 @@ function createFridge(x, y) {
   group.add(new Konva.Rect({ width: 40, height: 50, stroke: 'black', strokeWidth: 2, fill: 'white' }));
   group.add(new Konva.Line({ points: [20, 0, 20, 50], stroke: 'black', strokeWidth: 1 })); // Puertas
   enableShape(group); layer.add(group); layer.draw();
+}
+
+function createPizzaOven(x, y) {
+  const group = new Konva.Group({ x: snap(x), y: snap(y), draggable: true });
+
+  group.add(new Konva.Path({
+    data: 'M 10 50 A 20 20 0 1 1 50 50 Z',
+    stroke: 'black',
+    fill: 'white',
+    strokeWidth: 2
+  }));
+
+  group.add(new Konva.Rect({
+    x: 20,
+    y: 45,
+    width: 20,
+    height: 5,
+    fill: 'black'
+  }));
+
+  enableShape(group);
+  layer.add(group);
+  layer.draw();
 }
 
 // --- Elementos de Restaurante y Cocina ---

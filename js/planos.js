@@ -30,9 +30,29 @@ function drawGrid() {
     layer.add(new Konva.Line({ points: [0, j * gridSize, width, j * gridSize], stroke: '#e0e0e0', strokeWidth: 1, listening: false }));
   }
 }
-drawGrid();
+drawGrid();enableShape
 
 function snap(value) { return Math.round(value / gridSize) * gridSize; }
+function snap(value) { return Math.round(value / gridSize) * gridSize; }
+
+// === NUEVO: FUNCIÓN DE IMÁN INTELIGENTE ===
+function handleSnapping(target) {
+    const LINE_GUIDE_STOPS = 10; 
+    const itemNodes = stage.find('.item').filter(node => node !== target);
+    const box = target.getClientRect();
+
+    itemNodes.forEach(node => {
+        const itemBox = node.getClientRect();
+        if (Math.abs(itemBox.x - box.x) < LINE_GUIDE_STOPS) target.x(node.x());
+        if (Math.abs((itemBox.x + itemBox.width) - (box.x + box.width)) < LINE_GUIDE_STOPS) {
+             target.x(node.x() + (itemBox.width - box.width));
+        }
+        if (Math.abs(itemBox.y - box.y) < LINE_GUIDE_STOPS) target.y(node.y());
+        if (Math.abs((itemBox.y + itemBox.height) - (box.y + box.height)) < LINE_GUIDE_STOPS) {
+             target.y(node.y() + (itemBox.height - box.height));
+        }
+    });
+}
 
 // ===============================
 // SISTEMA DE HISTORIAL (UNDO)
@@ -70,31 +90,52 @@ function restoreState(stateArr) {
 // HABILITAR INTERACCIÓN
 // ===============================
 function enableShape(shape) {
-  shape.name('item');
-  
-  // Seleccionar automáticamente al crear o tocar
-  transformer.nodes([shape]); 
-  layer.draw();
-
-  shape.on('click tap', (e) => { 
-    e.cancelBubble = true; 
+    shape.name('item');
+    
     transformer.nodes([shape]); 
-    layer.draw(); 
-  });
+    layer.draw();
 
-  shape.on('dragmove', () => { 
-    shape.x(snap(shape.x())); 
-    shape.y(snap(shape.y())); 
-  });
+    shape.on('dragmove', (e) => {
+        handleSnapping(e.target); // Activa el imán
+        
+        // Mostrar coordenadas reales
+        tooltip.visible(true);
+        tooltipRect.visible(true);
+        tooltip.text(`X: ${Math.round(shape.x())}, Y: ${Math.round(shape.y())}`);
+        tooltip.position({ x: shape.x() + 10, y: shape.y() - 30 });
+        tooltipRect.position({ x: shape.x() + 5, y: shape.y() - 35 });
+        tooltipRect.width(tooltip.width() + 10);
+        tooltipRect.height(tooltip.height() + 10);
+        layer.batchDraw();
+    });
 
-  shape.on('dragend', () => saveHistory());
+    shape.on('transform', () => {
+        // Mostrar Grados y Medidas al escalar/rotar
+        const width = Math.round(shape.width() * shape.scaleX());
+        const height = Math.round(shape.height() * shape.scaleY());
+        const rotation = Math.round(shape.rotation());
 
-  shape.on('transformend', () => { 
-    shape.x(snap(shape.x())); 
-    shape.y(snap(shape.y())); 
-    layer.draw(); 
-    saveHistory(); 
-  });
+        tooltip.visible(true);
+        tooltipRect.visible(true);
+        tooltip.text(`Rotación: ${rotation}°\nDim: ${width}x${height} cm`);
+        tooltip.position({ x: shape.x() + 50, y: shape.y() - 50 });
+        tooltipRect.position({ x: shape.x() + 45, y: shape.y() - 55 });
+        tooltipRect.width(tooltip.width() + 10);
+        tooltipRect.height(tooltip.height() + 10);
+        layer.batchDraw();
+    });
+
+    shape.on('dragend transformend', () => {
+        tooltip.visible(false);
+        tooltipRect.visible(false);
+        saveHistory();
+    });
+
+    shape.on('click tap', (e) => { 
+        e.cancelBubble = true; 
+        transformer.nodes([shape]); 
+        layer.draw(); 
+    });
 }
 
 // ===============================
@@ -489,127 +530,78 @@ document.getElementById("saveImg").addEventListener("click", () => {
   gridLines.forEach(l => l.show());
   layer.draw();
 });
-// Función para obtener líneas de guía (Smart Guides)
-function getSnappingGuides(targetNode) {
-    const stage = targetNode.getStage();
-    const itemNodes = stage.find('.item').filter(node => node !== targetNode);
-    
-    const guides = { x: [], y: [] };
-
-    itemNodes.forEach(node => {
-        const box = node.getClientRect();
-        // Snapping a bordes y centros
-        guides.x.push(box.x, box.x + box.width, box.x + box.width / 2);
-        guides.y.push(box.y, box.y + box.height, box.y + box.height / 2);
-    });
-    return guides;
-}
-
-// Dentro de enableShape, mejora el evento dragmove:
-shape.on('dragmove', (e) => {
-    const guides = getSnappingGuides(e.target);
-    const box = e.target.getClientRect();
-    const absPos = e.target.absolutePosition();
-    
-    // Lógica de imán (umbral de 10 pixeles)
-    guides.x.forEach(lineX => {
-        if (Math.abs(lineX - box.x) < 10) e.target.x(lineX);
-    });
-    // ... repetir para Y
-});
-let clipboard = null;
-
-window.addEventListener('keydown', (e) => {
-    const selected = transformer.nodes()[0];
-    
-    // Borrar (Delete / Backspace)
-    if (e.key === 'Delete' && selected) {
-        selected.destroy();
-        transformer.nodes([]);
-        saveHistory();
-    }
-
-    // Copiar (Ctrl + C)
-    if (e.ctrlKey && e.key === 'c' && selected) {
-        clipboard = selected.toObject();
-    }
-
-    // Pegar (Ctrl + V)
-    if (e.ctrlKey && e.key === 'v' && clipboard) {
-        const newNode = Konva.Node.create(clipboard);
-        newNode.x(newNode.x() + 20); // Desplazar un poco
-        newNode.y(newNode.y() + 20);
-        enableShape(newNode);
-        layer.add(newNode);
-        saveHistory();
-    }
-});
-const tooltip = new Konva.Text({
-    text: '',
-    fontFamily: 'Calibri',
-    fontSize: 12,
-    padding: 5,
-    fill: 'white',
-    backgroundColor: 'black',
-    visible: false
-});
-layer.add(tooltip);
-
-// Actualizar en transformación
-transformer.on('transform', (e) => {
-    const node = transformer.nodes()[0];
-    const rotation = Math.round(node.rotation());
-    const width = Math.round(node.width() * node.scaleX());
-    const height = Math.round(node.height() * node.scaleY());
-
-    tooltip.visible(true);
-    tooltip.text(`Ángulo: ${rotation}°\nDim: ${width}x${height} cm`);
-    tooltip.position({
-        x: node.x() + 50,
-        y: node.y() - 40
-    });
-    layer.batchDraw();
-});
-
-transformer.on('transformend', () => tooltip.visible(false));
-const selectionRectangle = new Konva.Rect({
-    fill: 'rgba(0,0,255,0.1)',
-    visible: false,
-    stroke: 'rgba(0,0,255,0.5)',
-    strokeWidth: 1
-});
-layer.add(selectionRectangle);
+// === NUEVO: SELECCIÓN MÚLTIPLE POR ÁREA ===
+const selectionRect = new Konva.Rect({ fill: 'rgba(0,0,255,0.1)', stroke: 'blue', strokeWidth: 1, visible: false });
+layer.add(selectionRect);
 
 let x1, y1, x2, y2;
 stage.on('mousedown touchstart', (e) => {
-    if (e.target !== stage) return;
+    if (e.target !== stage || isDrawingMode) return; 
     x1 = stage.getPointerPosition().x;
     y1 = stage.getPointerPosition().y;
-    selectionRectangle.visible(true);
-    selectionRectangle.width(0);
-    selectionRectangle.height(0);
+    selectionRect.visible(true);
+    selectionRect.width(0);
+    selectionRect.height(0);
 });
 
 stage.on('mousemove touchmove', () => {
-    if (!selectionRectangle.visible()) return;
+    if (!selectionRect.visible()) return;
     x2 = stage.getPointerPosition().x;
     y2 = stage.getPointerPosition().y;
-
-    selectionRectangle.setAttrs({
-        x: Math.min(x1, x2),
-        y: Math.min(y1, y2),
-        width: Math.abs(x2 - x1),
-        height: Math.abs(y2 - y1),
+    selectionRect.setAttrs({
+        x: Math.min(x1, x2), y: Math.min(y1, y2),
+        width: Math.abs(x2 - x1), height: Math.abs(y2 - y1),
     });
 });
 
 stage.on('mouseup touchend', () => {
-    if (!selectionRectangle.visible()) return;
-    selectionRectangle.visible(false);
+    if (!selectionRect.visible()) return;
+    selectionRect.visible(false);
     const shapes = stage.find('.item');
-    const box = selectionRectangle.getClientRect();
-    const selected = shapes.filter(shape => 
-        Konva.Util.haveIntersection(box, shape.getClientRect())
-    );
+    const box = selectionRect.getClientRect();
+    const selected = shapes.filter((shape) => Konva.Util.haveIntersection(box, shape.getClientRect()));
     transformer.nodes(selected);
+});
+
+// === NUEVO: COMANDOS DE TECLADO ===
+window.addEventListener('keydown', (e) => {
+    const selectedNodes = transformer.nodes();
+    if (selectedNodes.length === 0) return;
+
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+        selectedNodes.forEach(node => node.destroy());
+        transformer.nodes([]);
+        layer.draw();
+        saveHistory();
+    }
+    if (e.ctrlKey && e.key === 'c') {
+        clipboard = selectedNodes[0].toObject();
+    }
+    if (e.ctrlKey && e.key === 'v' && clipboard) {
+        const newNode = Konva.Node.create(clipboard);
+        newNode.setAttrs({ x: newNode.x() + 20, y: newNode.y() + 20 });
+        enableShape(newNode);
+        layer.add(newNode);
+        layer.draw();
+        saveHistory();
+    }
+});
+// === NUEVO: CONTROL DE PROPIEDADES ===
+document.getElementById('colorPicker').addEventListener('input', (e) => {
+    transformer.nodes().forEach(node => {
+        const shape = node.findOne('Rect') || node.findOne('Circle') || node;
+        if (shape.fill) shape.fill(e.target.value);
+    });
+    layer.draw();
+});
+
+document.getElementById('toFront').addEventListener('click', () => {
+    transformer.nodes().forEach(n => n.moveToTop());
+    transformer.moveToTop(); 
+    layer.draw();
+});
+
+document.getElementById('toBack').addEventListener('click', () => {
+    transformer.nodes().forEach(n => n.moveToBottom());
+    layer.draw();
 });

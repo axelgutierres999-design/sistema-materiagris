@@ -396,3 +396,62 @@ async function eliminarPlano(id) {
     if(!error) cargarListaPlanos();
 }
 }
+// Ejecutar cuando se cargue la sección de planos
+async function cargarPlanosMaster() {
+    const contenedor = document.getElementById('contenedorListaPlanos');
+    contenedor.innerHTML = '<p aria-busy="true">Cargando galería de diseños...</p>';
+
+    try {
+        const { data: planos, error } = await supabase
+            .from('planos')
+            .select('*')
+            .order('creado_en', { ascending: false });
+
+        if (error) throw error;
+
+        if (planos.length === 0) {
+            contenedor.innerHTML = '<p>No hay planos guardados todavía.</p>';
+            return;
+        }
+
+        contenedor.innerHTML = ''; // Limpiar cargando
+        planos.forEach(plano => {
+            const card = document.createElement('article');
+            card.style.cssText = "background: #1a1a1a; border: 1px solid #333; padding: 20px; border-radius: 12px;";
+            
+            // Si el plano ya tiene restaurante_id, mostrar a quién pertenece
+            const badge = plano.restaurante_id 
+                ? `<span style="background: #2c3e50; color: #3498db; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;">ASIGNADO</span>`
+                : `<span style="background: #1b4d2e; color: #2ecc71; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;">PLANTILLA</span>`;
+
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <h4 style="margin: 0; color: white;">${plano.nombre_plano}</h4>
+                    ${badge}
+                </div>
+                <p style="font-size: 0.8rem; color: #666; margin: 10px 0;">ID: ${plano.id.substring(0,8)}...</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                    <button class="btn-outline" onclick="editarPlano('${plano.id}')" style="font-size: 0.8rem; padding: 5px;">✏️ Editar</button>
+                    <button class="btn-outline" onclick="eliminarPlano('${plano.id}')" style="font-size: 0.8rem; padding: 5px; color: #ff4444; border-color: #ff4444;">🗑️ Borrar</button>
+                </div>
+            `;
+            contenedor.appendChild(card);
+        });
+
+    } catch (error) {
+        contenedor.innerHTML = '<p style="color: red;">Error al cargar planos.</p>';
+        console.error(error);
+    }
+}
+
+// Funciones auxiliares para el listado
+function editarPlano(id) {
+    window.location.href = `planos.html?id_plano=${id}`;
+}
+
+async function eliminarPlano(id) {
+    if(!confirm("¿Seguro que quieres borrar este diseño?")) return;
+    const { error } = await supabase.from('planos').delete().eq('id', id);
+    if (!error) cargarPlanosMaster();
+}

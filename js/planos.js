@@ -714,37 +714,45 @@ document.getElementById('toBack').addEventListener('click', () => {
     layer.draw();
 });
 async function guardarPlano() {
-    // 1. Intentar obtener ID de la URL o del LocalStorage (sesión activa)
+    // 1. Intentar obtener ID (si venimos de un restaurante específico)
     const params = new URLSearchParams(window.location.search);
     let restauranteId = params.get("restaurante_id");
 
     if (!restauranteId) {
-        const sesion = JSON.parse(localStorage.getItem('sesion_activa')); // O como guardes tu sesión
+        const sesion = JSON.parse(localStorage.getItem('sesion_activa'));
         restauranteId = sesion ? sesion.restaurante_id : null;
     }
 
-    if (!restauranteId) {
-        alert("⚠️ No se encontró el ID del restaurante. Por favor, inicia sesión de nuevo.");
-        return;
-    }
-
-    const nombrePlano = prompt("Nombre del plano:", "Plano Principal");
+    // Si sigue siendo null, no bloqueamos, simplemente se guarda como "Plantilla Maestra"
+    const nombrePlano = prompt("Nombre para este diseño/plantilla:", "Plano General");
     if (!nombrePlano) return;
 
-    // 2. Guardar el estado actual del lienzo
-    const planoJSON = stage.toJSON();
+    // 2. Obtener la estructura del lienzo (Konva)
+    // Usamos stage.toObject() para que guarde las propiedades de los nodos correctamente
+    const estructuraJSON = stage.toObject();
 
-    const { error } = await supabase
-        .from('planos')
-        .upsert({ // Usamos upsert para que si ya existe, lo actualice
-            restaurante_id: restauranteId,
-            nombre_plano: nombrePlano,
-            datos: planoJSON
-        }, { onConflict: 'restaurante_id' }); // Evita duplicados por restaurante
+    try {
+        const { data, error } = await supabase
+            .from('planos')
+            .insert([
+                { 
+                    restaurante_id: restauranteId, // Puede ser null si es plantilla
+                    nombre_plano: nombrePlano,
+                    estructura: estructuraJSON 
+                }
+            ]);
 
-    if (error) {
+        if (error) throw error;
+
+        alert("✅ Plano guardado en la base de datos correctamente.");
+        
+        // Si estamos en el panel master, podemos redirigir al listado
+        if (!restauranteId) {
+            window.location.href = 'master.html'; // Ajusta al nombre de tu archivo principal
+        }
+
+    } catch (error) {
+        console.error("Error completo:", error);
         alert("❌ Error guardando: " + error.message);
-    } else {
-        alert("✅ ¡Plano guardado con éxito!");
     }
 }

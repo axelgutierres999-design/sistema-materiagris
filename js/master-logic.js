@@ -345,8 +345,9 @@ async function eliminarRestaurante(id, nombre) {
 function abrirDiseñadorPlanos(idRestaurante, nombreRestaurante) {
     const nombreCodificado = encodeURIComponent(nombreRestaurante);
     window.open(`planos.html?restaurante_id=${idRestaurante}&nombre=${nombreCodificado}`, '_blank');
+} 
 
-    // Función principal para cargar los planos en el panel
+// Función principal para cargar los planos en el panel
 async function cargarListaPlanos() {
     const contenedor = document.getElementById('contenedorListaPlanos');
     if (!contenedor) return; 
@@ -410,14 +411,7 @@ async function cargarListaPlanos() {
         contenedor.innerHTML = '<p style="color: red;">Error al cargar los planos.</p>';
         console.error("Error cargando planos:", error);
     }
-}
 
-// Función para borrar (opcional pero recomendada)
-async function eliminarPlano(id) {
-    if(!confirm("¿Borrar este diseño de plano permanentemente?")) return;
-    const { error } = await db.from('planos').delete().eq('id', id);
-    if(!error) cargarListaPlanos();
-}
 }
 // Función para descargar el JSON del plano a tu PC
 async function descargarPlano(planoId) {
@@ -501,10 +495,4 @@ async function eliminarPlano(planoId) {
 // Funciones auxiliares para el listado
 function editarPlano(id) {
     window.location.href = `planos.html?id_plano=${id}`;
-}
-
-async function eliminarPlano(id) {
-    if(!confirm("¿Seguro que quieres borrar este diseño?")) return;
-    const { error } = await supabase.from('planos').delete().eq('id', id);
-    if (!error) cargarPlanosMaster();
 }

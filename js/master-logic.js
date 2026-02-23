@@ -343,57 +343,72 @@ async function eliminarRestaurante(id, nombre) {
 // INTEGRACIÓN CON CREADOR DE PLANOS
 // ===============================
 function abrirDiseñadorPlanos(idRestaurante, nombreRestaurante) {
-    // Codificamos el nombre por si tiene espacios o caracteres especiales
     const nombreCodificado = encodeURIComponent(nombreRestaurante);
-    
-    // Abrimos la nueva página en una pestaña nueva pasando los datos por la URL
     window.open(`planos.html?restaurante_id=${idRestaurante}&nombre=${nombreCodificado}`, '_blank');
-    // Función para cargar los planos desde Supabase
+
+    // Función principal para cargar los planos en el panel
 async function cargarListaPlanos() {
     const contenedor = document.getElementById('contenedorListaPlanos');
-    contenedor.innerHTML = '<p aria-busy="true">Buscando planos en la nube...</p>';
+    if (!contenedor) return; 
 
+    contenedor.innerHTML = '<p aria-busy="true" style="color:#888;">Cargando galería de diseños...</p>';
 
     try {
-        // Traemos los planos. (Asumo que tu tabla se llama 'planos')
-        // Si tienes una relación con restaurantes, traemos el nombre también
-        const { data, error } = await db
+        const { data: planos, error } = await window.db
             .from('planos')
-            .select('*, restaurantes(nombre)');
+            .select('*')
+            .order('creado_en', { ascending: false });
 
         if (error) throw error;
-
-        if (data.length === 0) {
-            contenedor.innerHTML = '<p style="color: #555;">No hay planos diseñados todavía.</p>';
+        
+        if (planos.length === 0) {
+            contenedor.innerHTML = '<p style="color: #555;">No hay planos guardados todavía.</p>';
             return;
         }
 
         contenedor.innerHTML = ''; // Limpiar mensaje de carga
 
-        data.forEach(plano => {
-            const nombreRestaurante = plano.restaurantes ? plano.restaurantes.nombre : "No asignado";
-            const card = `
-                <div class="plano-card">
-                    <h4>${plano.nombre_plano || 'Diseño sin título'}</h4>
-                    <div class="badge-res">📍 ${nombreRestaurante}</div>
-                    <p>Última modificación: ${new Date(plano.creado_at || plano.creado_en).toLocaleDateString()}</p>
-                    
-                    <div class="plano-actions">
-                        <button class="btn-outline" style="font-size:0.75rem;" onclick="window.location.href='planos.html?id=${plano.id}'">
-                            ✏️ Editar Plano
-                        </button>
-                        <button class="btn-outline" style="font-size:0.75rem; border-color:#444; color:#888;" onclick="eliminarPlano('${plano.id}')">
-                            🗑️
-                        </button>
+        planos.forEach(plano => {
+            const card = document.createElement('article');
+            card.style.cssText = "background: #1a1a1a; border: 1px solid #333; padding: 20px; border-radius: 12px; display:flex; flex-direction:column; justify-content:space-between;";
+            
+            // Etiqueta visual si está asignado o es plantilla
+            const badge = plano.restaurante_id 
+                ? `<span style="background: #2c3e50; color: #3498db; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;">ID: ${plano.restaurante_id.substring(0,6)}...</span>`
+                : `<span style="background: #1b4d2e; color: #2ecc71; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;">PLANTILLA LIBRE</span>`;
+
+            card.innerHTML = `
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <h4 style="margin: 0; color: white;">${plano.nombre_plano || 'Sin título'}</h4>
+                        ${badge}
                     </div>
+                    <p style="font-size: 0.75rem; color: #666; margin: 10px 0;">
+                        Modificado: ${new Date(plano.creado_en || new Date()).toLocaleDateString()}
+                    </p>
+                </div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px;">
+                    <button class="btn-outline" onclick="asignarPlano('${plano.id}')" style="font-size: 0.75rem; padding: 6px; background:#2b2b2b; color:white; border:none;">
+                        🔗 Asignar ID
+                    </button>
+                    <button class="btn-outline" onclick="descargarPlano('${plano.id}')" style="font-size: 0.75rem; padding: 6px; background:#2b2b2b; color:white; border:none;">
+                        ⬇️ Descargar
+                    </button>
+                    <button class="btn-outline" onclick="window.open('planos.html?id_plano=${plano.id}', '_blank')" style="font-size: 0.75rem; padding: 6px;">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn-outline" onclick="eliminarPlano('${plano.id}')" style="font-size: 0.75rem; padding: 6px; color: #ff4444; border-color: #ff4444;">
+                        🗑️ Borrar
+                    </button>
                 </div>
             `;
-            contenedor.insertAdjacentHTML('beforeend', card);
+            contenedor.appendChild(card);
         });
 
-    } catch (err) {
-        console.error("Error cargando planos:", err);
-        contenedor.innerHTML = '<p style="color:red;">Error al conectar con la tabla de planos.</p>';
+    } catch (error) {
+        contenedor.innerHTML = '<p style="color: red;">Error al cargar los planos.</p>';
+        console.error("Error cargando planos:", error);
     }
 }
 
@@ -404,58 +419,85 @@ async function eliminarPlano(id) {
     if(!error) cargarListaPlanos();
 }
 }
-// Ejecutar cuando se cargue la sección de planos
-async function cargarPlanosMaster() {
-    const contenedor = document.getElementById('contenedorListaPlanos');
-    if (!contenedor) return; // Evitar errores si no estás en la sección de planos
-
-    contenedor.innerHTML = '<p aria-busy="true">Cargando galería de diseños...</p>';
-
+// Función para descargar el JSON del plano a tu PC
+async function descargarPlano(planoId) {
     try {
-        // Ahora 'supabase' ya es el cliente inicializado arriba
-        const { data: planos, error } = await supabase
+        // 1. Buscamos la estructura completa del plano en la base de datos
+        const { data, error } = await window.db
             .from('planos')
-            .select('*')
-            .order('creado_en', { ascending: false });
+            .select('nombre_plano, estructura')
+            .eq('id', planoId)
+            .single();
 
         if (error) throw error;
+        if (!data.estructura) return alert("Este plano no tiene estructura gráfica (está vacío).");
+
+        // 2. Preparamos el archivo JSON
+        const jsonString = JSON.stringify(data.estructura, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        // 3. Forzamos la descarga en el navegador
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${data.nombre_plano || 'plano'}_${planoId.substring(0,5)}.json`;
+        document.body.appendChild(a);
+        a.click();
         
-        if (planos.length === 0) {
-            contenedor.innerHTML = '<p>No hay planos guardados todavía.</p>';
-            return;
-        }
-
-        contenedor.innerHTML = ''; // Limpiar cargando
-        planos.forEach(plano => {
-            const card = document.createElement('article');
-            card.style.cssText = "background: #1a1a1a; border: 1px solid #333; padding: 20px; border-radius: 12px;";
-            
-            // Si el plano ya tiene restaurante_id, mostrar a quién pertenece
-            const badge = plano.restaurante_id 
-                ? `<span style="background: #2c3e50; color: #3498db; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;">ASIGNADO</span>`
-                : `<span style="background: #1b4d2e; color: #2ecc71; font-size: 0.7rem; padding: 2px 8px; border-radius: 10px;">PLANTILLA</span>`;
-
-            card.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: start;">
-                    <h4 style="margin: 0; color: white;">${plano.nombre_plano}</h4>
-                    ${badge}
-                </div>
-                <p style="font-size: 0.8rem; color: #666; margin: 10px 0;">ID: ${plano.id.substring(0,8)}...</p>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                    <button class="btn-outline" onclick="editarPlano('${plano.id}')" style="font-size: 0.8rem; padding: 5px;">✏️ Editar</button>
-                    <button class="btn-outline" onclick="eliminarPlano('${plano.id}')" style="font-size: 0.8rem; padding: 5px; color: #ff4444; border-color: #ff4444;">🗑️ Borrar</button>
-                </div>
-            `;
-            contenedor.appendChild(card);
-        });
+        // 4. Limpiamos
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
 
     } catch (error) {
-        contenedor.innerHTML = '<p style="color: red;">Error al cargar planos.</p>';
-        console.error(error);
+        console.error("Error al descargar:", error);
+        alert("❌ Error al descargar el plano.");
     }
 }
 
+// Función para asignar un plano a un Restaurante
+async function asignarPlano(planoId) {
+    const nuevoId = prompt("Ingresa el ID (UUID) del Restaurante al que pertenece este plano:\n\n*Si quieres dejarlo como plantilla libre, déjalo en blanco y dale a Aceptar.");
+    
+    // Si el usuario da a Cancelar, nuevoId es null, salimos.
+    if (nuevoId === null) return;
+
+    // Si está vacío, guardamos 'null' para hacerlo plantilla, si no, guardamos el ID
+    const idFinal = nuevoId.trim() === "" ? null : nuevoId.trim();
+
+    try {
+        const { error } = await window.db
+            .from('planos')
+            .update({ restaurante_id: idFinal })
+            .eq('id', planoId);
+
+        if (error) throw error;
+        
+        alert("✅ Plano reasignado correctamente.");
+        cargarListaPlanos(); // Recargamos la lista para ver el cambio visual
+
+    } catch (error) {
+        console.error("Error al asignar:", error);
+        alert("❌ Error al asignar. Revisa que el ID sea correcto.");
+    }
+}
+
+// Función para eliminar un plano
+async function eliminarPlano(planoId) {
+    if(!confirm("¿Seguro que quieres borrar este diseño permanentemente?")) return;
+    
+    try {
+        const { error } = await window.db
+            .from('planos')
+            .delete()
+            .eq('id', planoId);
+            
+        if (error) throw error;
+        cargarListaPlanos(); // Recargar visualmente
+        
+    } catch(err) {
+        alert("Error al borrar: " + err.message);
+    }
+}
 // Funciones auxiliares para el listado
 function editarPlano(id) {
     window.location.href = `planos.html?id_plano=${id}`;

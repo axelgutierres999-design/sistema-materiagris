@@ -7,13 +7,11 @@
 const supabaseUrl = 'https://cpveuexgxwxjejurtwro.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdmV1ZXhneHd4amVqdXJ0d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MTYxMzAsImV4cCI6MjA4MjE5MjEzMH0.I4FeC3dmtOXNqLWA-tRgxAb7JCe13HysOkqMGkXaUUc';
 
-// IMPORTANTE: Definimos 'supabase' como el cliente global
-// Usamos window.supabase para que planos.js también lo vea
+// IMPORTANTE: Definimos ambos para que cualquier archivo los encuentre
 window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+window.db = window.supabase; // <--- ESTA LÍNEA ES LA MAGIA QUE FALTA
 
-// Si prefieres seguir usando 'db' dentro de este archivo, haz esto:
-const db = window.supabase; 
-
+console.log("✅ Supabase y DB inicializados correctamente");
 let todosLosRestaurantes = [];
 // 2. INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', async () => {

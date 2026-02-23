@@ -714,22 +714,24 @@ document.getElementById('toBack').addEventListener('click', () => {
     layer.draw();
 });
 async function guardarPlano() {
-    // Intentar sacar el ID de la URL
     const params = new URLSearchParams(window.location.search);
     let restauranteId = params.get("restaurante_id") || params.get("id");
 
-    const nombrePlano = prompt("Nombre de este plano/plantilla:");
+    const nombrePlano = prompt("Nombre de este plano/plantilla:", "Nuevo Diseño");
     if (!nombrePlano) return;
 
-    // Convertir el diseño de Konva a JSON
-    const estructuraJSON = stage.toJSON();
+    // Verificamos que 'db' exista antes de disparar
+    if (!window.db) {
+        alert("❌ Error: La conexión 'db' no existe. Revisa config-master.js");
+        return;
+    }
 
-   try {
+    try {
         const { data, error } = await window.db
             .from('planos')
             .insert([{
-                restaurante_id: restauranteId, 
-                nombre_plano: "Mi Diseño", // O el nombre que uses
+                restaurante_id: restauranteId, // Si es null, se guarda como plantilla
+                nombre_plano: nombrePlano,     // Usamos la variable del prompt
                 estructura: stage.toJSON()
             }]);
 

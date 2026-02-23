@@ -4,14 +4,19 @@
  */
 
 // 1. CONFIGURACIÓN DE SUPABASE
+// js/config-master.js
+
 const supabaseUrl = 'https://cpveuexgxwxjejurtwro.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdmV1ZXhneHd4amVqdXJ0d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MTYxMzAsImV4cCI6MjA4MjE5MjEzMH0.I4FeC3dmtOXNqLWA-tRgxAb7JCe13HysOkqMGkXaUUc';
+const supabaseKey = 'eeyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdmV1ZXhneHd4amVqdXJ0d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MTYxMzAsImV4cCI6MjA4MjE5MjEzMH0';
 
-// IMPORTANTE: Definimos ambos para que cualquier archivo los encuentre
-window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-window.db = window.supabase; // <--- ESTA LÍNEA ES LA MAGIA QUE FALTA
+// 1. Creamos el cliente
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-console.log("✅ Supabase y DB inicializados correctamente");
+// 2. LO HACEMOS GLOBAL (Esto es lo más importante)
+window.supabase = supabaseClient;
+window.db = supabaseClient; 
+
+console.log("✅ Conexión global 'db' establecida.");
 let todosLosRestaurantes = [];
 // 2. INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', async () => {

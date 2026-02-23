@@ -714,45 +714,28 @@ document.getElementById('toBack').addEventListener('click', () => {
     layer.draw();
 });
 async function guardarPlano() {
-    // 1. Intentar obtener ID (si venimos de un restaurante específico)
+    // Intentar sacar el ID de la URL
     const params = new URLSearchParams(window.location.search);
-    let restauranteId = params.get("restaurante_id");
+    let restauranteId = params.get("restaurante_id") || params.get("id");
 
-    if (!restauranteId) {
-        const sesion = JSON.parse(localStorage.getItem('sesion_activa'));
-        restauranteId = sesion ? sesion.restaurante_id : null;
-    }
-
-    // Si sigue siendo null, no bloqueamos, simplemente se guarda como "Plantilla Maestra"
-    const nombrePlano = prompt("Nombre para este diseño/plantilla:", "Plano General");
+    const nombrePlano = prompt("Nombre de este plano/plantilla:");
     if (!nombrePlano) return;
 
-    // 2. Obtener la estructura del lienzo (Konva)
-    // Usamos stage.toObject() para que guarde las propiedades de los nodos correctamente
-    const estructuraJSON = stage.toObject();
+    // Convertir el diseño de Konva a JSON
+    const estructuraJSON = stage.toJSON();
 
     try {
         const { data, error } = await supabase
             .from('planos')
-            .insert([
-                { 
-                    restaurante_id: restauranteId, // Puede ser null si es plantilla
-                    nombre_plano: nombrePlano,
-                    estructura: estructuraJSON 
-                }
-            ]);
+            .insert([{
+                restaurante_id: restauranteId, // Si es null, Supabase lo acepta como plantilla
+                nombre_plano: nombrePlano,
+                estructura: estructuraJSON
+            }]);
 
         if (error) throw error;
-
-        alert("✅ Plano guardado en la base de datos correctamente.");
-        
-        // Si estamos en el panel master, podemos redirigir al listado
-        if (!restauranteId) {
-            window.location.href = 'master.html'; // Ajusta al nombre de tu archivo principal
-        }
-
-    } catch (error) {
-        console.error("Error completo:", error);
-        alert("❌ Error guardando: " + error.message);
+        alert("✅ Plano guardado correctamente");
+    } catch (err) {
+        alert("Error: " + err.message);
     }
 }

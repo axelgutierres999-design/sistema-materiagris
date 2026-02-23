@@ -5,11 +5,16 @@
 
 // 1. CONFIGURACIÓN DE SUPABASE
 const supabaseUrl = 'https://cpveuexgxwxjejurtwro.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdmV1ZXhneHd4amVqdXJ0d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MTYxMzAsImV4cCI6MjA4MjE5MjEzMH0.I4FeC3dmtOXNqLWA-tRgxAb7JCe13HysOkqMGkXaUUc';
-const db = supabase.createClient(supabaseUrl, supabaseKey);
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Tu clave completa
+
+// IMPORTANTE: Definimos 'supabase' como el cliente global
+// Usamos window.supabase para que planos.js también lo vea
+window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+// Si prefieres seguir usando 'db' dentro de este archivo, haz esto:
+const db = window.supabase; 
 
 let todosLosRestaurantes = [];
-
 // 2. INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
     // Verificar sesión al entrar
@@ -399,16 +404,19 @@ async function eliminarPlano(id) {
 // Ejecutar cuando se cargue la sección de planos
 async function cargarPlanosMaster() {
     const contenedor = document.getElementById('contenedorListaPlanos');
+    if (!contenedor) return; // Evitar errores si no estás en la sección de planos
+
     contenedor.innerHTML = '<p aria-busy="true">Cargando galería de diseños...</p>';
 
     try {
+        // Ahora 'supabase' ya es el cliente inicializado arriba
         const { data: planos, error } = await supabase
             .from('planos')
             .select('*')
             .order('creado_en', { ascending: false });
 
         if (error) throw error;
-
+        
         if (planos.length === 0) {
             contenedor.innerHTML = '<p>No hay planos guardados todavía.</p>';
             return;

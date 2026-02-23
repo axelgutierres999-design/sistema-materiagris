@@ -350,8 +350,16 @@ function createPlant(x, y) {
 }
 
 function createSquareTable(x, y) {
-  const group = new Konva.Group({ x: snap(x), y: snap(y), draggable: true });
-  // Mesa
+  const numMesa = prompt("Número de mesa:", "1"); 
+  if(!numMesa) return;
+
+  const group = new Konva.Group({ 
+    x: snap(x), 
+    y: snap(y), 
+    draggable: true,
+    name: 'mesa-interactiva', // <--- ESTO ES LA CLAVE
+    id: numMesa               // El número que el cliente le puso
+  });
   group.add(new Konva.Rect({ width: 50, height: 50, stroke: 'black', strokeWidth: 2, fill: 'white' }));
   // Sillas (4 lados)
   const chairSize = 15;
@@ -706,31 +714,37 @@ document.getElementById('toBack').addEventListener('click', () => {
     layer.draw();
 });
 async function guardarPlano() {
-
+    // 1. Intentar obtener ID de la URL o del LocalStorage (sesión activa)
     const params = new URLSearchParams(window.location.search);
-    const restauranteId = params.get("restaurante_id");
+    let restauranteId = params.get("restaurante_id");
 
     if (!restauranteId) {
-        alert("⚠️ Este plano no está vinculado a un restaurante.");
+        const sesion = JSON.parse(localStorage.getItem('sesion_activa')); // O como guardes tu sesión
+        restauranteId = sesion ? sesion.restaurante_id : null;
+    }
+
+    if (!restauranteId) {
+        alert("⚠️ No se encontró el ID del restaurante. Por favor, inicia sesión de nuevo.");
         return;
     }
 
     const nombrePlano = prompt("Nombre del plano:", "Plano Principal");
     if (!nombrePlano) return;
 
+    // 2. Guardar el estado actual del lienzo
     const planoJSON = stage.toJSON();
 
     const { error } = await supabase
         .from('planos')
-        .insert({
+        .upsert({ // Usamos upsert para que si ya existe, lo actualice
             restaurante_id: restauranteId,
             nombre_plano: nombrePlano,
             datos: planoJSON
-        });
+        }, { onConflict: 'restaurante_id' }); // Evita duplicados por restaurante
 
     if (error) {
         alert("❌ Error guardando: " + error.message);
     } else {
-        alert("✅ Plano guardado correctamente.");
+        alert("✅ ¡Plano guardado con éxito!");
     }
 }

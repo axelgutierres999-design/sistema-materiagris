@@ -724,18 +724,20 @@ async function guardarPlano() {
     // Convertir el diseño de Konva a JSON
     const estructuraJSON = stage.toJSON();
 
-    try {
-        const { data, error } = await supabase
+   try {
+        const { data, error } = await window.db
             .from('planos')
             .insert([{
-                restaurante_id: restauranteId, // Si es null, Supabase lo acepta como plantilla
-                nombre_plano: nombrePlano,
-                estructura: estructuraJSON
+                restaurante_id: restauranteId, 
+                nombre_plano: "Mi Diseño", // O el nombre que uses
+                estructura: stage.toJSON()
             }]);
 
         if (error) throw error;
         alert("✅ Plano guardado correctamente");
+
     } catch (err) {
-        alert("Error: " + err.message);
+        console.error("Error al guardar:", err);
+        alert("❌ Error guardando: " + err.message);
     }
 }

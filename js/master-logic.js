@@ -7,7 +7,7 @@
 // js/config-master.js
 
 const supabaseUrl = 'https://cpveuexgxwxjejurtwro.supabase.co';
-const supabaseKey = 'eeyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdmV1ZXhneHd4amVqdXJ0d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MTYxMzAsImV4cCI6MjA4MjE5MjEzMH0';
+const supabaseKey = 'eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdmV1ZXhneHd4amVqdXJ0d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MTYxMzAsImV4cCI6MjA4MjE5MjEzMH0';
 
 // 1. Creamos el cliente
 const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);

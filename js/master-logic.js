@@ -5,7 +5,7 @@
 
 // 1. CONFIGURACIÓN DE SUPABASE
 const supabaseUrl = 'https://cpveuexgxwxjejurtwro.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Tu clave completa
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwdmV1ZXhneHd4amVqdXJ0d3JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2MTYxMzAsImV4cCI6MjA4MjE5MjEzMH0.I4FeC3dmtOXNqLWA-tRgxAb7JCe13HysOkqMGkXaUUc';
 
 // IMPORTANTE: Definimos 'supabase' como el cliente global
 // Usamos window.supabase para que planos.js también lo vea

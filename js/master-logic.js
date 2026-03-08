@@ -20,12 +20,15 @@ console.log("✅ Conexión global 'db' establecida.");
 let todosLosRestaurantes = [];
 // 2. INICIALIZACIÓN
 document.addEventListener('DOMContentLoaded', async () => {
-    // Verificar sesión al entrar
+
+if (document.getElementById('listaRestaurantes')) {
     await checkAuth();
-    
-    // Cargar datos iniciales
-    await cargarRestaurantes();
-    
+}
+    if (document.getElementById('listaRestaurantes')) {
+        await cargarRestaurantes();
+    }
+
+});
     // Configurar buscador en tiempo real
     const buscador = document.getElementById('inputBusqueda');
     if (buscador) {
@@ -43,8 +46,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // 3. CARGA DE DATOS (REPARADO PARA EVITAR BUCLES Y MANEJAR ERRORES)
 async function cargarRestaurantes() {
+
     const listaContenedor = document.getElementById('listaRestaurantes');
-    listaContenedor.innerHTML = '<p aria-busy="true" style="color:#888;">Cargando restaurantes...</p>';
+
+    if (!listaContenedor) {
+        console.warn("listaRestaurantes no existe en esta página");
+        return;
+    }
+
+    listaContenedor.innerHTML = '<p aria-busy="true">Cargando restaurantes...</p>';
 
     try {
         const { data, error } = await db

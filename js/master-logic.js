@@ -27,8 +27,7 @@ if (document.getElementById('listaRestaurantes')) {
     if (document.getElementById('listaRestaurantes')) {
         await cargarRestaurantes();
     }
-
-});
+    
     // Configurar buscador en tiempo real
     const buscador = document.getElementById('inputBusqueda');
     if (buscador) {

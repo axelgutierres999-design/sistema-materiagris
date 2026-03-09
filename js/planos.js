@@ -733,12 +733,19 @@ async function guardarPlano() {
         return;
     }
 
-    const nombrePlano = prompt("Nombre del plano:", "Nuevo Plano");
+    const nombrePlano = prompt("Nombre del plano:", "Plano Restaurante");
     if (!nombrePlano) return;
 
     try {
 
+        // 🔴 OCULTAR GRID
+        const gridLines = layer.find('Line').filter(l => l.stroke() === '#e0e0e0');
+        gridLines.forEach(l => l.hide());
+
         const estructura = stage.toJSON();
+
+        // 🔵 VOLVER A MOSTRAR GRID
+        gridLines.forEach(l => l.show());
 
         const { error } = await db
             .from("planos")

@@ -1,165 +1,168 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Floor Planner Independiente</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://unpkg.com/konva@9/konva.min.js"></script>
+<title>Editor de Planos | OrdenLista</title>
 
-    <style>
-        /* CSS Optimizado */
-        body { margin: 0; font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; overflow: hidden; }
-        .app-wrapper { display: flex; justify-content: center; padding: 10px; height: 100vh; box-sizing: border-box; }
-        .main-card { display: flex; width: 100%; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); overflow: hidden; }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
 
-        /* Barra lateral de herramientas */
-        .sidebar-container { 
-            display: flex; 
-            flex-direction: column; 
-            width: 240px; 
-            border-right: 1px solid #ddd; 
-            background: #ffffff; 
-        }
-        .sidebar-header { background: #2c3e50; color: white; padding: 15px; text-align: center; }
-        .sidebar-header h4 { margin: 0; font-size: 16px; letter-spacing: 1px; }
+<style>
 
-        .toolbox { flex-grow: 1; padding: 15px; overflow-y: auto; }
-        .toolbox h5 { 
-            margin: 15px 0 8px 0; 
-            color: #7f8c8d; 
-            border-bottom: 2px solid #ecf0f1; 
-            padding-bottom: 5px; 
-            font-size: 10px; 
-            text-transform: uppercase;
-        }
+body{
+background:#f5f5f5;
+font-family:Arial;
+margin:0;
+display:flex;
+height:100vh;
+overflow:hidden;
+}
 
-        .tool-item { 
-            background: #fff; 
-            border: 1px solid #dcdde1; 
-            padding: 10px; 
-            margin-bottom: 8px; 
-            text-align: center; 
-            cursor: grab; 
-            border-radius: 8px; 
-            font-size: 12px; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            gap: 8px; 
-            transition: all 0.2s; 
-        }
-        .tool-item:hover { background: #f8f9fa; border-color: #3498db; transform: translateY(-2px); }
-        .tool-item:active { cursor: grabbing; }
+.sidebar{
+width:240px;
+background:white;
+border-right:1px solid #ddd;
+padding:15px;
+overflow:auto;
+}
 
-        /* Área del Lienzo */
-        .canvas-section { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; background: #dfe6e9; }
-        .canvas-wrapper { 
-            border-radius: 8px;
-            background: white; 
-            flex-grow: 1; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-            border: 1px solid #b2bec3;
-        }
+.sidebar h3{
+margin-top:20px;
+font-size:14px;
+color:#555;
+}
 
-        /* Controles */
-        .bottom-controls { 
-            margin-top: 15px; 
-            display: flex; 
-            gap: 10px; 
-            justify-content: center; 
-            align-items: center;
-            background: white; 
-            padding: 12px; 
-            border-radius: 10px; 
-        }
-        .control-btn { 
-            padding: 10px 16px; 
-            border: none; 
-            background: #2d3436; 
-            color: white; 
-            cursor: pointer; 
-            border-radius: 6px; 
-            font-weight: 600; 
-            font-size: 12px; 
-            transition: background 0.2s;
-        }
-        .control-btn:hover { background: #636e72; }
-        .btn-save { background: #27ae60 !important; }
-        .btn-img { background: #0984e3 !important; }
-        .btn-danger { background: #d63031 !important; }
-    </style>
+.tool-item{
+padding:8px;
+border:1px solid #ddd;
+border-radius:6px;
+margin-bottom:6px;
+cursor:pointer;
+background:white;
+font-size:13px;
+}
+
+.tool-item:hover{
+background:#f0f0f0;
+}
+
+.workspace{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+.toolbar{
+background:white;
+border-bottom:1px solid #ddd;
+padding:10px;
+display:flex;
+gap:10px;
+align-items:center;
+}
+
+.canvas-area{
+flex:1;
+display:flex;
+justify-content:center;
+align-items:center;
+background:#eaeaea;
+}
+
+#container{
+background:white;
+border:2px solid #ccc;
+}
+
+</style>
+
 </head>
+
 <body>
 
-<div class="app-wrapper">
-    <div class="main-card">
-        
-        <div class="sidebar-container">
-            <div class="sidebar-header">
-                <h4>PLANNER OFFLINE</h4>
-            </div>
+<div class="sidebar">
 
-            <div class="toolbox">
-                <h5>ESTRUCTURA</h5>
-                <div class="tool-item" draggable="true" data-shape="wall">
-                    <svg width="60" height="10"><rect width="60" height="10" fill="#2d3436"/></svg> Muro Sólido
-                </div>
-                <div class="tool-item" draggable="true" data-shape="column">
-                    <svg width="20" height="20"><rect width="20" height="20" fill="#2d3436"/></svg> Columna
-                </div>
+<h3>Estructura</h3>
 
-                <h5>MOBILIARIO</h5>
-                <div class="tool-item" draggable="true" data-shape="squareTable">
-                    <svg width="40" height="40" viewBox="0 0 70 70">
-                        <rect x="10" y="10" width="50" height="50" stroke="black" fill="none" stroke-width="2"/>
-                        <rect x="25" y="0" width="20" height="10" stroke="black" fill="none"/>
-                        <rect x="25" y="60" width="20" height="10" stroke="black" fill="none"/>
-                    </svg> Mesa Cuadrada
-                </div>
-                <div class="tool-item" draggable="true" data-shape="chair">
-                    <svg width="30" height="30" viewBox="0 0 40 40">
-                        <rect x="10" y="10" width="20" height="20" stroke="black" fill="none" stroke-width="2"/>
-                    </svg> Silla Simple
-                </div>
+<div class="tool-item" draggable="true" data-shape="wall">Pared</div>
+<div class="tool-item" draggable="true" data-shape="line">Línea</div>
+<div class="tool-item" draggable="true" data-shape="column">Columna</div>
+<div class="tool-item" draggable="true" data-shape="window">Ventana</div>
+<div class="tool-item" draggable="true" data-shape="door">Puerta</div>
 
-                <h5>OTROS</h5>
-                <div class="tool-item" draggable="true" data-shape="label">
-                    <svg width="40" height="20"><text x="5" y="15" font-size="12">TEXTO</text></svg> Etiqueta
-                </div>
-            </div>
-        </div>
+<h3>Formas</h3>
 
-        <div class="canvas-section">
-            <div class="canvas-wrapper">
-                <div id="container"></div>
-            </div>
-            
-            <div class="bottom-controls">
-                <input type="color" id="colorPicker" value="#2d3436" title="Cambiar Color">
-                <button id="toFront" class="control-btn">⏫ Frente</button>
-                <button id="toBack" class="control-btn">⏬ Fondo</button>
-                
-                <span style="border-left: 1px solid #ddd; height: 30px; margin: 0 5px;"></span>
+<div class="tool-item" draggable="true" data-shape="rectangle">Rectángulo</div>
+<div class="tool-item" draggable="true" data-shape="circleShape">Círculo</div>
+<div class="tool-item" draggable="true" data-shape="triangle">Triángulo</div>
 
-                <button id="undo" class="control-btn">↩️ Deshacer</button>
-                <button id="clear" class="control-btn btn-danger">🗑️ Limpiar</button>
-                <button id="drawMode" class="control-btn">✏️ Lápiz: OFF</button>
-                
-                <span style="border-left: 1px solid #ddd; height: 30px; margin: 0 5px;"></span>
+<h3>Mobiliario</h3>
 
-                <button id="saveImg" class="control-btn btn-img">🖼️ Exportar PNG</button>
-                <button onclick="saveHistory()" class="control-btn btn-save">💾 Guardar Local</button>
-            </div>
-        </div>
+<div class="tool-item" draggable="true" data-shape="squareTable">Mesa</div>
+<div class="tool-item" draggable="true" data-shape="chair">Silla</div>
+<div class="tool-item" draggable="true" data-shape="sofa">Sofá</div>
+<div class="tool-item" draggable="true" data-shape="bed">Cama</div>
+<div class="tool-item" draggable="true" data-shape="desk">Escritorio</div>
 
-    </div>
+<h3>Restaurante</h3>
+
+<div class="tool-item" draggable="true" data-shape="dining">Mesa redonda</div>
+<div class="tool-item" draggable="true" data-shape="booth">Booth</div>
+<div class="tool-item" draggable="true" data-shape="barCounter">Barra</div>
+
+<h3>Cocina</h3>
+
+<div class="tool-item" draggable="true" data-shape="stove">Estufa</div>
+<div class="tool-item" draggable="true" data-shape="sink">Lavabo</div>
+<div class="tool-item" draggable="true" data-shape="fridge">Refrigerador</div>
+<div class="tool-item" draggable="true" data-shape="pizzaOven">Horno Pizza</div>
+
+<h3>Extras</h3>
+
+<div class="tool-item" draggable="true" data-shape="plant">Planta</div>
+<div class="tool-item" draggable="true" data-shape="stairs">Escaleras</div>
+<div class="tool-item" draggable="true" data-shape="label">Texto</div>
+
 </div>
 
-<script src="planos-logic.js"></script>
+<div class="workspace">
+
+<div class="toolbar">
+
+<button id="undo">↩️ Deshacer</button>
+
+<button id="clear">🗑 Borrar</button>
+
+<button id="drawMode">✏️ Lápiz</button>
+
+<button onclick="guardarPlano()">💾 Guardar Plano</button>
+
+<button id="saveImg">📸 Exportar Imagen</button>
+
+<input type="color" id="colorPicker">
+
+<button id="toFront">⬆️ Adelante</button>
+
+<button id="toBack">⬇️ Atrás</button>
+
+</div>
+
+<div class="canvas-area">
+
+<div id="container"></div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/konva@9/konva.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/config-master.js"></script>
+
+<script src="js/planos.js"></script>
 
 </body>
-</html>
+</ht

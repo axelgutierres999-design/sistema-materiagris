@@ -742,18 +742,40 @@ async function guardarPlano() {
         const gridLines = layer.find('Line').filter(l => l.stroke() === '#e0e0e0');
         gridLines.forEach(l => l.hide());
 
-        const estructura = stage.toJSON();
+        const estructuraVisual = stage.toJSON();
+
+const mesas = [];
+
+layer.find('.mesa-interactiva').forEach(mesa => {
+
+    const box = mesa.getClientRect();
+
+    mesas.push({
+        nombre: "Mesa " + mesa.id(),
+        x: Math.round(box.x),
+        y: Math.round(box.y),
+        width: Math.round(box.width),
+        height: Math.round(box.height),
+        forma: "cuadrada"
+    });
+
+});
+
+const estructura = {
+    visual: estructuraVisual,
+    mesas: mesas
+};
 
         // 🔵 VOLVER A MOSTRAR GRID
         gridLines.forEach(l => l.show());
 
         const { error } = await db
-            .from("planos")
-            .insert([{
-                restaurante_id: RESTAURANTE_ID,
-                nombre_plano: nombrePlano,
-                estructura: estructura
-            }]);
+    .from("planos")
+    .insert([{
+        restaurante_id: RESTAURANTE_ID,
+        nombre_plano: nombrePlano,
+        datos: estructura
+    }]);
 
         if (error) throw error;
 
@@ -785,10 +807,10 @@ async function cargarPlano() {
 
         if (error) throw error;
 
-        if (!data.estructura) return;
+        if (!data.datos) return;
 
         stage.destroy();
-        Konva.Node.create(data.estructura, "container");
+        Konva.Node.create(data.datos.visual, "container");
 
         console.log("Plano cargado correctamente");
 

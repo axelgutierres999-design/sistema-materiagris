@@ -738,54 +738,48 @@ async function guardarPlano() {
 
     try {
 
-        // 🔴 OCULTAR GRID
         const gridLines = layer.find('Line').filter(l => l.stroke() === '#e0e0e0');
         gridLines.forEach(l => l.hide());
 
         const estructuraVisual = stage.toJSON();
 
-const mesas = [];
+        const mesas = [];
 
-layer.find('.mesa-interactiva').forEach(mesa => {
+        layer.find('.mesa-interactiva').forEach(mesa => {
+            const box = mesa.getClientRect();
 
-    const box = mesa.getClientRect();
+            mesas.push({
+                nombre: "Mesa " + mesa.id(),
+                x: Math.round(box.x),
+                y: Math.round(box.y),
+                width: Math.round(box.width),
+                height: Math.round(box.height),
+                forma: "cuadrada"
+            });
+        });
 
-    mesas.push({
-        nombre: "Mesa " + mesa.id(),
-        x: Math.round(box.x),
-        y: Math.round(box.y),
-        width: Math.round(box.width),
-        height: Math.round(box.height),
-        forma: "cuadrada"
-    });
+        const estructura = {
+            visual: estructuraVisual,
+            mesas: mesas
+        };
 
-});
-
-const estructura = {
-    visual: estructuraVisual,
-    mesas: mesas
-};
-
-        // 🔵 VOLVER A MOSTRAR GRID
         gridLines.forEach(l => l.show());
 
         const { error } = await db
-    .from("planos")
-    .insert([{
-        restaurante_id: RESTAURANTE_ID,
-        nombre_plano: nombrePlano,
-        datos: estructura
-    }]);
+            .from("planos")
+            .insert([{
+                restaurante_id: RESTAURANTE_ID,
+                nombre_plano: nombrePlano,
+                estructura: estructura
+            }]);
 
         if (error) throw error;
 
         alert("✅ Plano guardado correctamente");
 
     } catch (err) {
-
         console.error(err);
         alert("❌ Error al guardar plano");
-
     }
 }
 async function cargarPlano() {
@@ -810,7 +804,7 @@ async function cargarPlano() {
         if (!data.datos) return;
 
         stage.destroy();
-        Konva.Node.create(data.datos.visual, "container");
+        Konva.Node.create(data.estructura.visual, "container");
 
         console.log("Plano cargado correctamente");
 

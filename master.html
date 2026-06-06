@@ -22,7 +22,7 @@
                     <li onclick="cambiarSeccion('vision3d')"><span>💎</span> Vision 3D</li>
                     <li onclick="cambiarSeccion('config')"><span>⚙️</span> Configuración</li>
                     <li onclick="cambiarSeccion('planos')"><span>🗺️</span> Diseñador Planos</li>
-                    <li onclick="cambiarSeccion('gestion-datos')"><span>🗑️</span> gestion-datos/li>
+                    <li onclick="cambiarSeccion('gestion-datos')"><span>🗑️</span> gestion-datos</li>
                     <li onclick="logout()" style="margin-top: 50px; color: #888;"><span>🚪</span> Salir</li>
                 </ul>
             </nav>
@@ -139,6 +139,22 @@
                 <button class="secondary outline" onclick="document.getElementById('modalDetalle').close()" style="border-color: #444; color: #aaa;">Cerrar</button>
             </footer>
         </article>
+        <section id="sec-gestion-datos" class="seccion" style="display: none;">
+                <header>
+                    <h1 style="margin-bottom: 10px; font-weight: 300;">🗑️ Gestión de Datos</h1>
+                    <p style="color: #888; margin-bottom: 20px;">Mantenimiento y limpieza manual de la base de datos.</p>
+                </header>
+
+                <div style="background: rgba(255,0,0,0.05); padding: 25px; border-radius: 12px; border: 1px dashed #ff4444;">
+                    <h3 style="margin-top: 0; color: white;">Limpieza de Registros de Dieta</h3>
+                    <p style="color: #aaa; font-size: 0.9rem;">
+                        Esta acción ejecutará el ciclo de retención de 7 días. Eliminará de forma permanente todos los registros de alimentos y cálculos que tengan <strong>más de 7 días de antigüedad</strong>.
+                    </p>
+                    <button id="btnLimpiarDieta" onclick="ejecutarLimpiezaDieta()" style="background: #ff4444; color: white; border: none; font-weight: bold; padding: 12px 20px; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: opacity 0.2s;">
+                        ⚠️ Borrar registros antiguos (7+ días)
+                    </button>
+                </div>
+            </section>
     </dialog>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

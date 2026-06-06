@@ -505,3 +505,37 @@ async function eliminarPlano(planoId) {
 function editarPlano(id) {
     window.location.href = `planos.html?id_plano=${id}`;
 }
+// ===============================
+// GESTIÓN DE DATOS Y LIMPIEZA
+// ===============================
+
+async function ejecutarLimpiezaDieta() {
+    const btn = document.getElementById('btnLimpiarDieta');
+    
+    // 1. Confirmación de seguridad
+    if (!confirm("¿Estás seguro de que deseas eliminar permanentemente los registros de dieta con más de 7 días de antigüedad? Esta acción no se puede deshacer.")) return;
+
+    try {
+        // 2. Bloqueo de botón para evitar doble clic
+        btn.style.opacity = '0.5';
+        btn.disabled = true;
+        btn.innerText = "⏳ Procesando limpieza...";
+
+        // 3. Ejecutar la función almacenada en el SQL (ciclo de 7 días)
+        const { error } = await window.db.rpc('limpiar_dieta_semanal');
+
+        if (error) throw error;
+
+        // 4. Éxito
+        alert("✅ Limpieza completada exitosamente. Los registros antiguos han sido eliminados del servidor.");
+        
+    } catch (err) {
+        console.error("Error al limpiar base de datos:", err);
+        alert("❌ Hubo un error al ejecutar la limpieza: " + err.message);
+    } finally {
+        // 5. Restaurar botón
+        btn.style.opacity = '1';
+        btn.disabled = false;
+        btn.innerText = "⚠️ Borrar registros antiguos (7+ días)";
+    }
+}

@@ -139,7 +139,7 @@
                 <button class="secondary outline" onclick="document.getElementById('modalDetalle').close()" style="border-color: #444; color: #aaa;">Cerrar</button>
             </footer>
         </article>
-        <section id="sec-gestion-datos" class="seccion" style="display: none;">
+        </section> <section id="sec-gestion-datos" class="seccion" style="display: none;">
                 <header>
                     <h1 style="margin-bottom: 10px; font-weight: 300;">🗑️ Gestión de Datos</h1>
                     <p style="color: #888; margin-bottom: 20px;">Mantenimiento y limpieza manual de la base de datos.</p>
@@ -155,10 +155,25 @@
                     </button>
                 </div>
             </section>
+
+        </main> <dialog id="modalDetalle">
+        <article style="min-width: 400px; background: #111; border: 1px solid #333;">
+            <header>
+                <h3 id="detNombre" style="margin: 0; color: white;">Nombre</h3>
+                <button aria-label="Close" class="contrast" onclick="document.getElementById('modalDetalle').close()" style="float: right; background: transparent; color: white; border: none;">✕</button>
+            </header>
+            
+            <div id="detContenido" style="padding: 10px 0;">
+                </div>
+
+            <footer style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 10px; border-top: 1px solid #333;">
+                <button class="secondary outline" onclick="document.getElementById('modalDetalle').close()" style="border-color: #444; color: #aaa;">Cerrar</button>
+            </footer>
+        </article>
     </dialog>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="js/master-logic.js"></script>
-<script src="js/config-master.js"></script>
+    <script src="js/config-master.js"></script>
 </body>
 </html>

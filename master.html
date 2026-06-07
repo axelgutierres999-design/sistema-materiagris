@@ -22,7 +22,7 @@
                     <li onclick="cambiarSeccion('vision3d')"><span>💎</span> Vision 3D</li>
                     <li onclick="cambiarSeccion('config')"><span>⚙️</span> Configuración</li>
                     <li onclick="cambiarSeccion('planos')"><span>🗺️</span> Diseñador Planos</li>
-                    <li onclick="cambiarSeccion('gestion-datos')"><span>🗑️</span> gestion-datos</li>
+                    <li onclick="cambiarSeccion('gestion-datos')"><span>🗑️</span> Gestión Datos</li>
                     <li onclick="logout()" style="margin-top: 50px; color: #888;"><span>🚪</span> Salir</li>
                 </ul>
             </nav>
@@ -74,72 +74,56 @@
             </section>
 
             <section id="sec-config" class="seccion" style="display:none;">
-    <header>
-        <h1 style="margin-bottom: 10px; font-weight: 300;">⚙️ Configuración del Sistema</h1>
-        <p style="color: #888; margin-bottom: 20px;">Personaliza los datos de cobro y la apariencia del panel.</p>
-    </header>
+                <header>
+                    <h1 style="margin-bottom: 10px; font-weight: 300;">⚙️ Configuración del Sistema</h1>
+                    <p style="color: #888; margin-bottom: 20px;">Personaliza los datos de cobro y la apariencia del panel.</p>
+                </header>
 
-    <div class="grid-config" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-        
-        <div class="card-config" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid #333;">
-            <h3 style="color:white; margin-top:0; font-size: 1.1rem;">💳 Mis Datos de Cobro</h3>
-            <p style="font-size:0.8rem; color:#888;">Instrucciones que verá el cliente al momento de realizar su pago mensual.</p>
-            <textarea id="conf-datos-pago" placeholder="Ej: Transferencia Banco X..." style="width:100%; height:120px; background:#000; color:#0f0; border:1px solid #444; padding:10px; border-radius:8px; font-family: monospace; font-size: 0.85rem;"></textarea>
-        </div>
+                <div class="grid-config" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                    <div class="card-config" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid #333;">
+                        <h3 style="color:white; margin-top:0; font-size: 1.1rem;">💳 Mis Datos de Cobro</h3>
+                        <p style="font-size:0.8rem; color:#888;">Instrucciones que verá el cliente al momento de realizar su pago mensual.</p>
+                        <textarea id="conf-datos-pago" placeholder="Ej: Transferencia Banco X..." style="width:100%; height:120px; background:#000; color:#0f0; border:1px solid #444; padding:10px; border-radius:8px; font-family: monospace; font-size: 0.85rem;"></textarea>
+                    </div>
 
-        <div class="card-config" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid #333;">
-            <h3 style="color:white; margin-top:0; font-size: 1.1rem;">✉️ Mensaje de Confirmación</h3>
-            <p style="font-size:0.8rem; color:#888;">Este mensaje se enviará o mostrará al marcar una cuenta como PAGADA.</p>
-            <textarea id="conf-mensaje-exito" placeholder="¡Pago recibido con éxito!" style="width:100%; height:120px; background:#000; color:white; border:1px solid #444; padding:10px; border-radius:8px; font-size: 0.85rem;"></textarea>
-        </div>
+                    <div class="card-config" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid #333;">
+                        <h3 style="color:white; margin-top:0; font-size: 1.1rem;">✉️ Mensaje de Confirmación</h3>
+                        <p style="font-size:0.8rem; color:#888;">Este mensaje se enviará o mostrará al marcar una cuenta como PAGADA.</p>
+                        <textarea id="conf-mensaje-exito" placeholder="¡Pago recibido con éxito!" style="width:100%; height:120px; background:#000; color:white; border:1px solid #444; padding:10px; border-radius:8px; font-size: 0.85rem;"></textarea>
+                    </div>
 
-        <div class="card-config" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid #333;">
-            <h3 style="color:white; margin-top:0; font-size: 1.1rem;">🖼️ Fondo del Panel</h3>
-            <p style="font-size:0.8rem; color:#888;">URL de la imagen de fondo (puedes usar enlaces de Unsplash o similares).</p>
-            <input type="text" id="conf-fondo-url" placeholder="https://ejemplo.com/imagen.jpg" style="width:100%; background:#000; color:white; border:1px solid #444; padding:10px; border-radius:8px; margin-bottom:15px; font-size: 0.85rem;">
-            
-            <button class="btn-primary" onclick="guardarConfiguracionGlobal()" style="width:100%; background:white; color:black; font-weight:bold; border:none; padding:12px; border-radius:8px; cursor:pointer; transition: 0.3s;">
-                💾 Guardar Configuración
-            </button>
-        </div>
-
-    </div>
-</section>
-
-<section id="sec-planos" class="seccion" style="display: none;">
-    <header>
-        <h1 style="margin-bottom: 10px; font-weight: 300;">🗺️ Diseñador de Planos</h1>
-        <p style="color: #888; margin-bottom: 20px;">Gestiona la distribución de mesas de tus clientes.</p>
-        
-        <button onclick="window.location.href='planos.html'" class="btn-outline" style="background: white; color: black; font-weight: bold; padding: 12px 25px;">
-            ➕ Crear Nuevo Plano
-        </button>
-    </header>
-
-    <hr style="border-color: #333; margin: 30px 0;">
-
-    <h3 style="color: white; font-weight: 300; margin-bottom: 20px;">Planos Guardados</h3>
-    
-    <div id="contenedorListaPlanos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
-        <p style="color: #666;">Cargando planos...</p>
-    </div>
-</section>
-
-    <dialog id="modalDetalle">
-        <article style="min-width: 400px; background: #111; border: 1px solid #333;">
-            <header>
-                <h3 id="detNombre" style="margin: 0; color: white;">Nombre</h3>
-                <button aria-label="Close" class="contrast" onclick="document.getElementById('modalDetalle').close()" style="float: right; background: transparent; color: white; border: none;">✕</button>
-            </header>
-            
-            <div id="detContenido" style="padding: 10px 0;">
+                    <div class="card-config" style="background:rgba(255,255,255,0.05); padding:20px; border-radius:12px; border:1px solid #333;">
+                        <h3 style="color:white; margin-top:0; font-size: 1.1rem;">🖼️ Fondo del Panel</h3>
+                        <p style="font-size:0.8rem; color:#888;">URL de la imagen de fondo (puedes usar enlaces de Unsplash o similares).</p>
+                        <input type="text" id="conf-fondo-url" placeholder="https://ejemplo.com/imagen.jpg" style="width:100%; background:#000; color:white; border:1px solid #444; padding:10px; border-radius:8px; margin-bottom:15px; font-size: 0.85rem;">
+                        
+                        <button class="btn-primary" onclick="guardarConfiguracionGlobal()" style="width:100%; background:white; color:black; font-weight:bold; border:none; padding:12px; border-radius:8px; cursor:pointer; transition: 0.3s;">
+                            💾 Guardar Configuración
+                        </button>
+                    </div>
                 </div>
+            </section>
 
-            <footer style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 10px; border-top: 1px solid #333;">
-                <button class="secondary outline" onclick="document.getElementById('modalDetalle').close()" style="border-color: #444; color: #aaa;">Cerrar</button>
-            </footer>
-        </article>
-        </section> <section id="sec-gestion-datos" class="seccion" style="display: none;">
+            <section id="sec-planos" class="seccion" style="display: none;">
+                <header>
+                    <h1 style="margin-bottom: 10px; font-weight: 300;">🗺️ Diseñador de Planos</h1>
+                    <p style="color: #888; margin-bottom: 20px;">Gestiona la distribución de mesas de tus clientes.</p>
+                    
+                    <button onclick="window.location.href='planos.html'" class="btn-outline" style="background: white; color: black; font-weight: bold; padding: 12px 25px;">
+                        ➕ Crear Nuevo Plano
+                    </button>
+                </header>
+
+                <hr style="border-color: #333; margin: 30px 0;">
+
+                <h3 style="color: white; font-weight: 300; margin-bottom: 20px;">Planos Guardados</h3>
+                
+                <div id="contenedorListaPlanos" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                    <p style="color: #666;">Cargando planos...</p>
+                </div>
+            </section>
+
+            <section id="sec-gestion-datos" class="seccion" style="display: none;">
                 <header>
                     <h1 style="margin-bottom: 10px; font-weight: 300;">🗑️ Gestión de Datos</h1>
                     <p style="color: #888; margin-bottom: 20px;">Mantenimiento y limpieza manual de la base de datos.</p>
@@ -156,7 +140,8 @@
                 </div>
             </section>
 
-        </main> <dialog id="modalDetalle">
+        </main> 
+    </div> <dialog id="modalDetalle">
         <article style="min-width: 400px; background: #111; border: 1px solid #333;">
             <header>
                 <h3 id="detNombre" style="margin: 0; color: white;">Nombre</h3>
@@ -164,7 +149,7 @@
             </header>
             
             <div id="detContenido" style="padding: 10px 0;">
-                </div>
+            </div>
 
             <footer style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 10px; border-top: 1px solid #333;">
                 <button class="secondary outline" onclick="document.getElementById('modalDetalle').close()" style="border-color: #444; color: #aaa;">Cerrar</button>
@@ -173,7 +158,7 @@
     </dialog>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/master-logic.js"></script>
     <script src="js/config-master.js"></script>
+    <script src="js/master-logic.js"></script>
 </body>
 </html>
